@@ -8,10 +8,6 @@
     {
       "src": "api/upload-request/index.go",
       "use": "@vercel/go"
-    },
-    {
-      "src": "frontend/package.json",
-      "use": "@vercel/vite"
     }
   ],
   "routes": [
