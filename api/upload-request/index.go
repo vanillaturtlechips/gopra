@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 )
@@ -51,12 +52,21 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	apiUrl := fmt.Sprintf("https://blob.vercel-storage.com/%s?public=true", req.Filename)
+	escapedFilename := url.PathEscape(req.Filename)
+	apiUrl := fmt.Sprintf("https://blob.vercel-storage.com/%s?public=true", escapedFilename)
+
 	httpReq, err := http.NewRequestWithContext(r.Context(), "PUT", apiUrl, nil)
 	if err != nil {
 		http.Error(w, "Failed to create HTTP request: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	// apiUrl := fmt.Sprintf("https://blob.vercel-storage.com/%s?public=true", req.Filename)
+	// httpReq, err := http.NewRequestWithContext(r.Context(), "PUT", apiUrl, nil)
+	// if err != nil {
+	// 	http.Error(w, "Failed to create HTTP request: "+err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
 
 	httpReq.Header.Set("Authorization", "Bearer "+token)
 	httpReq.Header.Set("X-Content-Type", req.ContentType)
