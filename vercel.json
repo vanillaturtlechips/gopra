@@ -2,11 +2,11 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "builds": [
     {
-      "src": "api/posts/index.go", 
+      "src": "api/posts/index.go",
       "use": "@vercel/go"
     },
     {
-      "src": "api/upload-request/index.go", 
+      "src": "api/upload-request/index.go",
       "use": "@vercel/go"
     },
     {
@@ -17,11 +17,11 @@
   "routes": [
     {
       "src": "/api/posts(.*)",
-      "dest": "api/posts/index.go" 
+      "dest": "api/posts/index.go"
     },
     {
       "src": "/api/upload-request",
-      "dest": "api/upload-request/index.go" 
+      "dest": "api/upload-request/index.go"
     },
     {
       "src": "/(.*)",
