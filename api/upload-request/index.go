@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 )
 
 type UploadRequest struct {
@@ -68,10 +69,8 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	// }
 
 	httpReq.Header.Set("Authorization", "Bearer "+token)
-	httpReq.Header.Set("x-content-type", req.ContentType)
-	// httpReq.Header.Set("x-content-length", strconv.FormatInt(req.Size, 10))
-
-	httpReq.Header.Set("x-ms-blob-type", "BlockBlob")
+	httpReq.Header.Set("X-Content-Type", req.ContentType)
+	httpReq.Header.Set("X-Content-Length", strconv.FormatInt(req.Size, 10))
 
 	client := &http.Client{}
 	httpRes, err := client.Do(httpReq)
