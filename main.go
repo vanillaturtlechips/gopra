@@ -231,9 +231,9 @@ func uploadRequestHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	httpReq.Header.Set("Authorization", "Bearer "+token)
-	httpReq.Header.Set("x-ms-blob-content-type", req.ContentType)
+	httpReq.Header.Set("X-Content-Type", req.ContentType)
 	// 4. ⬇️ Vercel Blob API에 파일 크기(int64)를 문자열로 변환하여 헤더에 추가
-	httpReq.Header.Set("x-ms-blob-content-length", strconv.FormatInt(req.Size, 10))
+	httpReq.Header.Set("X-Content-Length", strconv.FormatInt(req.Size, 10))
 
 	client := &http.Client{}
 	httpRes, err := client.Do(httpReq)

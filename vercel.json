@@ -6,14 +6,22 @@
       "use": "@vercel/go"
     },
     {
+      "src": "api/upload-request.go",
+      "use": "@vercel/go"
+    },
+    {
       "src": "frontend/package.json",
       "use": "@vercel/vite"
     }
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
+      "src": "/api/posts(.*)",
       "dest": "api/posts.go"
+    },
+    {
+      "src": "/api/upload-request",
+      "dest": "api/upload-request.go"
     },
     {
       "src": "/(.*)",
