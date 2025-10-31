@@ -47,7 +47,7 @@ function Header() {
           onClick={(e) => handleScrollClick(e, 'about')}
           className="text-2xl font-bold text-indigo-400 cursor-pointer hover:text-indigo-300"
         >
-          myong21.site
+          myong12.site
         </a>
 
         {/* 데스크탑 네비게이션 링크 */}
@@ -498,7 +498,7 @@ function App() {
       </main>
 
       <footer className="text-center p-8 border-t border-gray-700">
-        <p className="text-gray-500">© 2025 myong21.site. All rights reserved.</p>
+        <p className="text-gray-500">© 2025 myong12.site All rights reserved.</p>
       </footer>
     </div>
   )
