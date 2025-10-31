@@ -1,19 +1,19 @@
 // frontend/scripts/sync.mjs
 import fs from 'fs';
 import path from 'path';
+import postgres from 'postgres'; // ⬅️ 1. fetch 대신 postgres 임포트
 
-// 1. 환경 변수 로드
+// 2. 환경 변수 로드
 const {
-  VERCEL_PROJECT_URL,
-  PORTFOLIO_API_TOKEN,
-  VERCEL_GIT_REPO_OWNER, // Vercel이 자동으로 제공
-  VERCEL_GIT_REPO_SLUG,   // Vercel이 자동으로 제공 (gopra)
-  CONTENT_ROOT_PATH,      // 우리가 설정한 "study-content"
+  POSTGRES_URL, // ⬅️ DB URL을 직접 사용 (Vercel 환경변수에 이미 있음)
+  VERCEL_GIT_REPO_OWNER,
+  VERCEL_GIT_REPO_SLUG,
+  CONTENT_ROOT_PATH,
 } = process.env;
 
-// 2. 동기화할 카테고리 목록
+// (사용자가 정의한 카테고리 목록)
 const TARGET_CATEGORIES = [
-  'Devops',
+  'devops',
   'GOlang',
   'DataBase',
   'Network',
@@ -24,19 +24,11 @@ const TARGET_CATEGORIES = [
 // 3. GitHub 링크 생성을 위한 기본 URL
 const GITHUB_BASE_URL = `https://github.com/${VERCEL_GIT_REPO_OWNER}/${VERCEL_GIT_REPO_SLUG}/blob/main`;
 
-// 4. 스크립트 기준 콘텐츠 폴더 경로 설정
-// (현재 위치: /frontend/scripts/ -> /frontend/ -> / (root) -> /study-content/)
-// 'process.cwd()'는 'frontend' 폴더를 가리킵니다.
+// 4. 콘텐츠 폴더 경로 설정
 const CONTENT_DIR = path.join(process.cwd(), '..', CONTENT_ROOT_PATH);
 
-// 5. API 요청 시 사용할 인증 헤더
-const AUTH_HEADER = {
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${PORTFOLIO_API_TOKEN}`,
-};
-
 /**
- * 로컬 파일 시스템을 스캔하여 .md 파일 목록을 가져옵니다.
+ * 로컬 파일 시스템 스캔 (이 함수는 수정 없음)
  */
 function getLocalFiles() {
   console.log(`Scanning for .md files in: ${CONTENT_DIR}`);
@@ -49,24 +41,19 @@ function getLocalFiles() {
 
   for (const category of TARGET_CATEGORIES) {
     const categoryDir = path.join(CONTENT_DIR, category);
-    if (!fs.existsSync(categoryDir)) {
-      // 해당 카테고리 폴더가 없으면 건너뜀
-      continue;
-    }
+    if (!fs.existsSync(categoryDir)) continue;
 
-    // 폴더 내 .md 파일만 필터링 (README.md 제외)
     const mdFiles = fs.readdirSync(categoryDir).filter(
       file => file.endsWith('.md') && !file.endsWith('README.md')
     );
 
     for (const file of mdFiles) {
-      // DB에 저장할 경로 (예: "study-content/devops/docker.md")
       const relativePath = `${CONTENT_ROOT_PATH}/${category}/${file}`;
       files.push({
         title: file.replace('.md', ''),
         category: category,
-        linkUrl: `${GITHUB_BASE_URL}/${relativePath}`, // 최종 GitHub 링크
-        content: '', // 요약글은 이 스크립트에서 파싱하지 않음
+        linkUrl: `${GITHUB_BASE_URL}/${relativePath}`,
+        content: '', // 요약글 없음
       });
     }
   }
@@ -75,17 +62,27 @@ function getLocalFiles() {
 }
 
 /**
- * Vercel DB에서 현재 게시물 목록을 가져옵니다.
+ * ⬅️ 5. DB에서 직접 게시물 목록을 가져오도록 수정
  */
-async function getDatabasePosts() {
-  console.log('Fetching posts from Vercel DB...');
+async function getDatabasePosts(sql) {
+  console.log('Fetching posts directly from Vercel DB...');
   try {
-    const response = await fetch(`${VERCEL_PROJECT_URL}/api/posts`);
-    if (!response.ok) {
-      console.error(`Failed to fetch posts: ${response.statusText}`);
-      return [];
-    }
-    const posts = await response.json();
+    // ⚠️ 이전 로그에서 'cannot scan NULL' 오류가 있었습니다.
+    //    만약 Neon에서 DELETE FROM posts WHERE category IS NULL;
+    //    를 실행했다면 아래 쿼리를,
+    //    아니라면 COALESCE 쿼리를 사용하세요.
+    
+    // [해결책 A (DB 초기화)를 썼을 경우]
+    const posts = await sql`SELECT id, title, category, link_url as "linkUrl" FROM posts`;
+
+    // [해결책 B (Go 코드 수정)를 썼거나, NULL이 걱정될 경우]
+    // const posts = await sql`
+    //   SELECT id, title, 
+    //          COALESCE(category, '') as category, 
+    //          COALESCE(link_url, '') as "linkUrl" 
+    //   FROM posts
+    // `;
+
     console.log(`Found ${posts.length} posts in DB.`);
     return posts;
   } catch (e) {
@@ -100,10 +97,9 @@ async function getDatabasePosts() {
 async function syncPortfolio() {
   console.log('--- Starting Portfolio Sync ---');
 
-  // Vercel 필수 변수 확인
+  // 6. ⚠️ API 토큰 대신 DB URL 확인
   const missingVars = [
-    !VERCEL_PROJECT_URL && 'VERCEL_PROJECT_URL',
-    !PORTFOLIO_API_TOKEN && 'PORTFOLIO_API_TOKEN',
+    !POSTGRES_URL && 'POSTGRES_URL',
     !VERCEL_GIT_REPO_OWNER && 'VERCEL_GIT_REPO_OWNER',
     !VERCEL_GIT_REPO_SLUG && 'VERCEL_GIT_REPO_SLUG',
     !CONTENT_ROOT_PATH && 'CONTENT_ROOT_PATH'
@@ -111,57 +107,52 @@ async function syncPortfolio() {
 
   if (missingVars.length > 0) {
     console.error(`Missing environment variables: ${missingVars.join(', ')}. Aborting sync.`);
-    // Vercel 자동 변수가 없다는 것은 로컬 dev 환경일 수 있으므로 빌드를 막지 않음
-    if (process.env.NODE_ENV !== 'development') {
-        process.exit(1); // Vercel 빌드 시에는 실패 처리
-    }
+    if (process.env.NODE_ENV !== 'development') process.exit(1);
     console.warn('Continuing build without sync (likely local dev)...');
     return;
   }
 
+  // 7. ⬅️ DB 연결 (Vercel 빌드 환경은 SSL이 필요함)
+  const sql = postgres(POSTGRES_URL, { ssl: 'require' });
+
   const [localFiles, dbPosts] = await Promise.all([
     getLocalFiles(),
-    getDatabasePosts(),
+    getDatabasePosts(sql),
   ]);
 
-  // linkUrl (GitHub URL)을 고유 키로 사용하여 비교
   const localMap = new Map(localFiles.map(f => [f.linkUrl, f]));
   const dbMap = new Map(dbPosts.map(p => [p.linkUrl, p]));
 
-  // 1. 로컬에만 있는 파일 찾기 (DB에 '추가'해야 함)
   const postsToAdd = localFiles.filter(f => !dbMap.has(f.linkUrl));
-
-  // 2. DB에만 있는 포스트 찾기 (로컬에서 '삭제'된 것임)
   const postsToDelete = dbPosts.filter(p => !localMap.has(p.linkUrl));
 
-  // 3. '추가' 작업 실행
+  // 8. ⬅️ '추가' 작업 (직접 INSERT)
   for (const post of postsToAdd) {
     console.log(`[+] ADDING: ${post.title} (Category: ${post.category})`);
     try {
-      const res = await fetch(`${VERCEL_PROJECT_URL}/api/posts`, {
-        method: 'POST',
-        headers: AUTH_HEADER,
-        body: JSON.stringify(post),
-      });
-      if (!res.ok) console.error(`Failed to add ${post.title}: ${await res.text()}`);
+      await sql`
+        INSERT INTO posts (title, content, category, link_url)
+        VALUES (${post.title}, ${post.content}, ${post.category}, ${post.linkUrl})
+      `;
     } catch (e) {
       console.error(`Failed to add ${post.title}:`, e.message);
     }
   }
 
-  // 4. '삭제' 작업 실행
+  // 9. ⬅️ '삭제' 작업 (직접 DELETE)
   for (const post of postsToDelete) {
     console.log(`[-] DELETING: ${post.title} (ID: ${post.id})`);
     try {
-      const res = await fetch(`${VERCEL_PROJECT_URL}/api/posts/${post.id}`, {
-        method: 'DELETE',
-        headers: AUTH_HEADER,
-      });
-      if (!res.ok) console.error(`Failed to delete ${post.title}: ${await res.text()}`);
+      await sql`
+        DELETE FROM posts WHERE id = ${post.id}
+      `;
     } catch (e) {
       console.error(`Failed to delete ${post.title}:`, e.message);
     }
   }
+  
+  // 10. ⬅️ DB 연결 종료
+  await sql.end();
 
   console.log('--- Sync Complete ---');
 }
