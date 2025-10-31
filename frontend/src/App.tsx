@@ -100,10 +100,15 @@ function Header() {
 //=================================================================
 // 2. PostEditor 컴포넌트 (App.tsx 파일 내부에 포함)
 //=================================================================
+/*
+ * PresignedUploadResponse 인터페이스는 
+ * 'api/upload/index.go'가 반환하는 { "url": "..." } 형식과
+ * 맞지 않으므로 주석 처리하거나 제거합니다.
 interface PresignedUploadResponse {
   uploadUrl: string;
   finalUrl: string;
 }
+*/
 
 interface PostEditorProps {
   onPostCreated: () => void;
@@ -157,7 +162,8 @@ function PostEditor({ onPostCreated }: PostEditorProps) {
 
 
   /**
-   * 2. 이미지 업로드 핸들러 (수정됨)
+   * 2. 이미지 업로드 핸들러 (*** 수정된 부분 ***)
+   * JSON 대신 FormData를 사용하도록 수정
    */
   const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -167,51 +173,35 @@ function PostEditor({ onPostCreated }: PostEditorProps) {
     setError(null);
 
     try {
-      // --- 1. Go API에 업로드 허가 요청 (file.size 추가) ---
-      const presignResponse = await fetch('/api/upload', {
+      // --- 1. FormData 생성 ---
+      const formData = new FormData();
+      formData.append('file', file); // 'file' 키는 api/upload/index.go의 r.FormFile("file")과 일치해야 함
+
+      // --- 2. Go API에 FormData 전송 ---
+      const response = await fetch('/api/upload', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        // ⬇️ 1. 파일 크기(size)를 함께 전송
-        body: JSON.stringify({ 
-          filename: file.name,
-          contentType: file.type,
-          size: file.size // ⬅️ 파일 크기 추가
-        }),
+        body: formData,
+        // 'Content-Type': 'multipart/form-data' 헤더는
+        // 브라우저가 body가 FormData일 때 자동으로 생성해줍니다.
+        // (경계(boundary) 값까지 포함해서)
+        // 수동으로 설정하면 오류가 날 수 있으므로 생략합니다.
       });
 
-      if (!presignResponse.ok) {
-        const errText = await presignResponse.text();
-        throw new Error(`이미지 업로드 URL 요청 실패: ${errText}`);
+      if (!response.ok) {
+         const errText = await response.text();
+         throw new Error(`이미지 업로드 실패: ${errText}`);
       }
-
-      const data: PresignedUploadResponse = await presignResponse.json();
       
-      // --- 2. Vercel Blob에 파일 직접 업로드 ---
-      const uploadResponse = await fetch(data.uploadUrl, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': file.type, 
-          'x-ms-blob-type': 'BlockBlob',
-          // ⬇️ 2. Vercel Blob API는 여기에 Content-Length도 요구함
-          // (브라우저가 자동으로 추가해주는 경우가 많지만, 명시적으로 추가)
-          'Content-Length': file.size.toString(),
-        },
-        body: file,
-      });
+      // --- 3. Go API의 응답 ( { "url": "..." } ) 파싱 ---
+      const data = await response.json(); // data.url 사용
       
-      if (!uploadResponse.ok) {
-         const errText = await uploadResponse.text();
-         throw new Error(`Vercel Blob 업로드 실패: ${errText}`);
-      }
-
-      // --- 3. 에디터에 마크다운 삽입 ---
-      const markdownImage = `\n![${file.name}](${data.finalUrl})\n`;
+      // --- 4. 에디터에 마크다운 삽입 ---
+      const markdownImage = `\n![${file.name}](${data.url})\n`;
       insertTextAtCursor(markdownImage);
 
     } catch (err) {
       if (err instanceof Error) {
+        // 이전에 보셨던 오류 메시지를 여기서 표시합니다.
         setError(`이미지 업로드 실패: ${err.message}`);
       } else {
         setError('이미지 업로드 중 알 수 없는 오류 발생');
