@@ -168,7 +168,7 @@ function PostEditor({ onPostCreated }: PostEditorProps) {
 
     try {
       // --- 1. Go API에 업로드 허가 요청 (file.size 추가) ---
-      const presignResponse = await fetch('/api/upload-request', {
+      const presignResponse = await fetch('/api/upload', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
