@@ -93,7 +93,28 @@ func getPostID(path string) (int, bool) {
 	return id, true
 }
 
-// listPosts: ⬅️ SELECT문에 category, link_url 추가
+// ⬅️ 1. 인증을 위한 헬퍼 함수 추가
+func isAuthorized(r *http.Request) bool {
+	token := os.Getenv("PORTFOLIO_API_TOKEN")
+	if token == "" {
+		// 토큰이 Vercel 환경 변수에 설정되지 않으면 보안을 위해 무조건 실패시킴
+		log.Println("CRITICAL: PORTFOLIO_API_TOKEN is not set.")
+		return false
+	}
+
+	// "Authorization: Bearer <token>" 형식의 헤더를 기대
+	authHeader := r.Header.Get("Authorization")
+	parts := strings.Split(authHeader, " ")
+	if len(parts) != 2 || parts[0] != "Bearer" {
+		log.Println("WARN: Invalid Authorization header format.")
+		return false
+	}
+
+	// 토큰 일치 여부 확인
+	return parts[1] == token
+}
+
+// listPosts: ⬅️ SELECT문에 category, link_url 추가 (인증 필요 없음)
 func listPosts(w http.ResponseWriter, r *http.Request) {
 	conn, err := dbpool.Acquire(r.Context())
 	if err != nil {
@@ -136,15 +157,21 @@ func listPosts(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// createPost: ⬅️ INSERT문에 category, link_url 추가
+// createPost: ⬅️ INSERT문 수정 및 인증 체크 추가
 func createPost(w http.ResponseWriter, r *http.Request) {
+	// ⬅️ 2. 인증 체크
+	if !isAuthorized(r) {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	var newPost Post
 	if err := json.NewDecoder(r.Body).Decode(&newPost); err != nil {
 		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
 		return
 	}
 
-	// ⬅️ Title, Category, LinkURL을 필수값으로 검증
+	// ⬅️ Title, Category, LinkURL을 필수값으로 검증 (content는 요약글이므로 선택)
 	if newPost.Title == "" || newPost.Category == "" || newPost.LinkURL == "" {
 		http.Error(w, "Title, Category, LinkURL are required", http.StatusBadRequest)
 		return
@@ -174,7 +201,7 @@ func createPost(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(newPost)
 }
 
-// getPost: ⬅️ SELECT문에 category, link_url 추가
+// getPost: ⬅️ SELECT문 수정 (인증 필요 없음)
 func getPost(w http.ResponseWriter, r *http.Request, id int) {
 	conn, err := dbpool.Acquire(r.Context())
 	if err != nil {
@@ -199,8 +226,14 @@ func getPost(w http.ResponseWriter, r *http.Request, id int) {
 	json.NewEncoder(w).Encode(p)
 }
 
-// updatePost: ⬅️ UPDATE문에 category, link_url 추가
+// updatePost: ⬅️ UPDATE문 수정 및 인증 체크 추가
 func updatePost(w http.ResponseWriter, r *http.Request, id int) {
+	// ⬅️ 3. 인증 체크
+	if !isAuthorized(r) {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	var updatedPost Post
 	if err := json.NewDecoder(r.Body).Decode(&updatedPost); err != nil {
 		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
@@ -242,8 +275,14 @@ func updatePost(w http.ResponseWriter, r *http.Request, id int) {
 	json.NewEncoder(w).Encode(updatedPost)
 }
 
-// deletePost: (수정 필요 없음)
+// deletePost: ⬅️ 인증 체크 추가
 func deletePost(w http.ResponseWriter, r *http.Request, id int) {
+	// ⬅️ 4. 인증 체크
+	if !isAuthorized(r) {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	conn, err := dbpool.Acquire(r.Context())
 	if err != nil {
 		log.Printf("Failed to acquire connection: %v", err)
@@ -267,17 +306,19 @@ func deletePost(w http.ResponseWriter, r *http.Request, id int) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// Handler: (수정 필요 없음)
+// Handler: (라우팅 로직, 수정 필요 없음)
 func Handler(w http.ResponseWriter, r *http.Request) {
+	// DB 초기화
 	if err := initDB(); err != nil {
 		log.Printf("Failed to initialize database: %v", err)
 		http.Error(w, "Database initialization failed", http.StatusInternalServerError)
 		return
 	}
 
+	// CORS 헤더
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization") // ⬅️ Authorization 헤더 허용
 
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
