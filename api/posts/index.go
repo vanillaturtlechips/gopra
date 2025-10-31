@@ -9,6 +9,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -19,32 +20,56 @@ type Post struct {
 	Content string `json:"content"`
 }
 
-var dbpool *pgxpool.Pool
+var (
+	dbpool *pgxpool.Pool
+	once   sync.Once
+)
 
-func initDB() {
+func initDB() error {
+	var initErr error
+	once.Do(func() {
+		databaseUrl := os.Getenv("POSTGRES_URL")
+		if databaseUrl == "" {
+			initErr = fmt.Errorf("POSTGRES_URL is not set")
+			return
+		}
 
-	databaseUrl := os.Getenv("POSTGRES_URL")
-	if databaseUrl == "" {
-		log.Fatal("POSTGRES_URL is not set")
-	}
+		// Serverless 환경을 위한 Connection Pool 설정
+		config, err := pgxpool.ParseConfig(databaseUrl)
+		if err != nil {
+			initErr = fmt.Errorf("failed to parse database URL: %w", err)
+			return
+		}
 
-	var err error
-	// pgxpool.New를 사용해 커넥션 풀을 생성합니다.
-	dbpool, err = pgxpool.New(context.Background(), databaseUrl)
-	if err != nil {
-		log.Fatalf("Unable to create connection pool: %v\n", err)
-	}
+		// Serverless에 최적화된 설정
+		config.MaxConns = 1          // 최대 연결 수를 1로 제한
+		config.MinConns = 0          // 최소 연결 수를 0으로 설정
+		config.MaxConnIdleTime = 0   // idle connection을 즉시 해제
+		config.MaxConnLifetime = 0   // connection lifetime 제한 없음
+		config.HealthCheckPeriod = 0 // health check 비활성화
 
-	_, err = dbpool.Exec(context.Background(), `
-		CREATE TABLE IF NOT EXISTS posts (
-			id SERIAL PRIMARY KEY,
-			title TEXT NOT NULL,
-			content TEXT
-		);
-	`)
-	if err != nil {
-		log.Fatalf("Failed to create 'posts' table: %v\n", err)
-	}
+		dbpool, err = pgxpool.NewWithConfig(context.Background(), config)
+		if err != nil {
+			initErr = fmt.Errorf("unable to create connection pool: %w", err)
+			return
+		}
+
+		// 테이블 생성
+		_, err = dbpool.Exec(context.Background(), `
+			CREATE TABLE IF NOT EXISTS posts (
+				id SERIAL PRIMARY KEY,
+				title TEXT NOT NULL,
+				content TEXT
+			);
+		`)
+		if err != nil {
+			initErr = fmt.Errorf("failed to create posts table: %w", err)
+			return
+		}
+
+		log.Println("Database pool initialized successfully")
+	})
+	return initErr
 }
 
 func getPostID(path string) (int, bool) {
@@ -67,62 +92,77 @@ func getPostID(path string) (int, bool) {
 }
 
 func listPosts(w http.ResponseWriter, r *http.Request) {
-	// 1. 풀에서 커넥션 빌려오기
 	conn, err := dbpool.Acquire(r.Context())
 	if err != nil {
+		log.Printf("Failed to acquire connection: %v", err)
 		http.Error(w, "Failed to acquire connection", http.StatusInternalServerError)
 		return
 	}
-	// 2. 함수 종료 시 반드시 커넥션 반납
 	defer conn.Release()
 
-	// 3. 쿼리 실행
 	rows, err := conn.Query(r.Context(), "SELECT id, title, content FROM posts ORDER BY id DESC")
 	if err != nil {
-		http.Error(w, "Failed to query posts: "+err.Error(), http.StatusInternalServerError)
+		log.Printf("Failed to query posts: %v", err)
+		http.Error(w, "Failed to query posts", http.StatusInternalServerError)
 		return
 	}
-	defer rows.Close() // rows도 닫아주기
+	defer rows.Close()
 
 	postList := []Post{}
 	for rows.Next() {
 		var p Post
 		if err := rows.Scan(&p.ID, &p.Title, &p.Content); err != nil {
-			http.Error(w, "Failed to scan post: "+err.Error(), http.StatusInternalServerError)
+			log.Printf("Failed to scan post: %v", err)
+			http.Error(w, "Failed to scan post", http.StatusInternalServerError)
 			return
 		}
 		postList = append(postList, p)
 	}
 
+	if err := rows.Err(); err != nil {
+		log.Printf("Row iteration error: %v", err)
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(postList); err != nil {
+		log.Printf("Failed to encode JSON: %v", err)
 		http.Error(w, "Failed to encode JSON", http.StatusInternalServerError)
 	}
 }
 
 func createPost(w http.ResponseWriter, r *http.Request) {
-	var newPost Post // id는 제외 (DB가 SERIAL로 생성)
+	var newPost Post
 	if err := json.NewDecoder(r.Body).Decode(&newPost); err != nil {
-		http.Error(w, "Invalid JSON format: "+err.Error(), http.StatusBadRequest)
+		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
+		return
+	}
+
+	if newPost.Title == "" {
+		http.Error(w, "Title is required", http.StatusBadRequest)
 		return
 	}
 
 	conn, err := dbpool.Acquire(r.Context())
 	if err != nil {
+		log.Printf("Failed to acquire connection: %v", err)
 		http.Error(w, "Failed to acquire connection", http.StatusInternalServerError)
 		return
 	}
 	defer conn.Release()
 
-	// DB에 INSERT하고, 생성된 id를 반환받음
 	err = conn.QueryRow(r.Context(),
 		"INSERT INTO posts (title, content) VALUES ($1, $2) RETURNING id",
 		newPost.Title, newPost.Content).Scan(&newPost.ID)
 
 	if err != nil {
-		http.Error(w, "Failed to create post: "+err.Error(), http.StatusInternalServerError)
+		log.Printf("Failed to create post: %v", err)
+		http.Error(w, "Failed to create post", http.StatusInternalServerError)
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(newPost)
 }
@@ -130,6 +170,7 @@ func createPost(w http.ResponseWriter, r *http.Request) {
 func getPost(w http.ResponseWriter, r *http.Request, id int) {
 	conn, err := dbpool.Acquire(r.Context())
 	if err != nil {
+		log.Printf("Failed to acquire connection: %v", err)
 		http.Error(w, "Failed to acquire connection", http.StatusInternalServerError)
 		return
 	}
@@ -140,83 +181,88 @@ func getPost(w http.ResponseWriter, r *http.Request, id int) {
 		"SELECT id, title, content FROM posts WHERE id = $1", id).Scan(&p.ID, &p.Title, &p.Content)
 
 	if err != nil {
-		// (중요) 에러가 pgx.ErrNoRows이면 404 Not Found를 반환해야 합니다.
-		// 여기서는 간단하게 처리합니다.
-		http.Error(w, fmt.Sprintf("Post with ID %d not found or query failed: %v", id, err), http.StatusNotFound)
+		log.Printf("Post not found (ID: %d): %v", id, err)
+		http.Error(w, fmt.Sprintf("Post with ID %d not found", id), http.StatusNotFound)
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(p)
 }
 
 func updatePost(w http.ResponseWriter, r *http.Request, id int) {
 	var updatedPost Post
 	if err := json.NewDecoder(r.Body).Decode(&updatedPost); err != nil {
-		http.Error(w, "Invalid JSON format: "+err.Error(), http.StatusBadRequest)
+		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
+		return
+	}
+
+	if updatedPost.Title == "" {
+		http.Error(w, "Title is required", http.StatusBadRequest)
 		return
 	}
 
 	conn, err := dbpool.Acquire(r.Context())
 	if err != nil {
+		log.Printf("Failed to acquire connection: %v", err)
 		http.Error(w, "Failed to acquire connection", http.StatusInternalServerError)
 		return
 	}
 	defer conn.Release()
 
-	// 1. UPDATE 쿼리 실행
 	cmdTag, err := conn.Exec(r.Context(),
 		"UPDATE posts SET title = $1, content = $2 WHERE id = $3",
 		updatedPost.Title, updatedPost.Content, id)
 
 	if err != nil {
-		http.Error(w, "Failed to update post: "+err.Error(), http.StatusInternalServerError)
+		log.Printf("Failed to update post: %v", err)
+		http.Error(w, "Failed to update post", http.StatusInternalServerError)
 		return
 	}
 
-	// 2. 실제로 행이 업데이트되었는지 확인
 	if cmdTag.RowsAffected() == 0 {
 		http.Error(w, fmt.Sprintf("Post with ID %d not found", id), http.StatusNotFound)
 		return
 	}
 
-	// 3. 업데이트된 객체 반환 (ID 설정)
 	updatedPost.ID = id
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(updatedPost)
 }
 
 func deletePost(w http.ResponseWriter, r *http.Request, id int) {
 	conn, err := dbpool.Acquire(r.Context())
 	if err != nil {
+		log.Printf("Failed to acquire connection: %v", err)
 		http.Error(w, "Failed to acquire connection", http.StatusInternalServerError)
 		return
 	}
 	defer conn.Release()
 
-	// 1. DELETE 쿼리 실행
 	cmdTag, err := conn.Exec(r.Context(), "DELETE FROM posts WHERE id = $1", id)
 	if err != nil {
-		http.Error(w, "Failed to delete post: "+err.Error(), http.StatusInternalServerError)
+		log.Printf("Failed to delete post: %v", err)
+		http.Error(w, "Failed to delete post", http.StatusInternalServerError)
 		return
 	}
 
-	// 2. 실제로 행이 삭제되었는지 확인
 	if cmdTag.RowsAffected() == 0 {
 		http.Error(w, fmt.Sprintf("Post with ID %d not found", id), http.StatusNotFound)
 		return
 	}
 
-	// 3. 성공 시 204 No Content 반환
 	w.WriteHeader(http.StatusNoContent)
 }
 
 func Handler(w http.ResponseWriter, r *http.Request) {
-
-	if dbpool == nil {
-		initDB()
+	// DB 초기화
+	if err := initDB(); err != nil {
+		log.Printf("Failed to initialize database: %v", err)
+		http.Error(w, "Database initialization failed", http.StatusInternalServerError)
+		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-
+	// CORS 헤더
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")

@@ -1,12 +1,11 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
   "builds": [
     {
       "src": "api/posts/index.go",
       "use": "@vercel/go"
     },
     {
-      "src": "api/upload-request/index.go",
+      "src": "api/upload/index.go",
       "use": "@vercel/go"
     },
     {
@@ -20,8 +19,8 @@
       "dest": "api/posts/index.go"
     },
     {
-      "src": "/api/upload-request",
-      "dest": "api/upload-request/index.go"
+      "src": "/api/upload",
+      "dest": "api/upload/index.go"
     },
     {
       "src": "/(.*)",

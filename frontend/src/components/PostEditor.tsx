@@ -75,16 +75,33 @@ export default function PostEditor({ onPostCreated }: PostEditorProps) {
     setError(null);
 
     try {
-      // --- (임시) 현재는 Go API가 없으므로 가짜 URL로 시뮬레이션 ---
-      await new Promise(resolve => setTimeout(resolve, 1000)); 
-      const finalUrl = `https://placehold.co/600x400?text=${file.name}`;
-      // --- 임시 코드 끝 ---
+      // FormData 생성
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Go API에 직접 파일 업로드
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData, // Content-Type은 자동으로 설정됨
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`이미지 업로드 실패: ${errText}`);
+      }
+
+      const data = await response.json();
       
-      const markdownImage = `\n![${file.name}](${finalUrl})\n`;
+      // 에디터에 마크다운 삽입
+      const markdownImage = `\n![${file.name}](${data.url})\n`;
       insertTextAtCursor(markdownImage);
 
     } catch (err) {
-      setError(err instanceof Error ? err.message : '이미지 업로드 실패');
+      if (err instanceof Error) {
+        setError(`이미지 업로드 실패: ${err.message}`);
+      } else {
+        setError('이미지 업로드 중 알 수 없는 오류 발생');
+      }
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) {
