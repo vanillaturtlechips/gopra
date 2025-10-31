@@ -15,8 +15,9 @@ const {
   CONTENT_ROOT_PATH,
 } = process.env;
 
+// 🔥 실제 폴더명과 일치하도록 수정 (대소문자 주의!)
 const TARGET_CATEGORIES = [
-  'devops',
+  'Devops',     // ⬅️ 대문자 D
   'GOlang',
   'DataBase',
   'Network',
