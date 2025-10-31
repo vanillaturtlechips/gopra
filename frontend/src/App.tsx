@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, type FormEvent, type ChangeEvent } from 'react'
 
-//--- Post 구조체 (1단계에서 수정 완료) ---
+//--- Post 구조체 ---
 interface Post {
   id: number;
   title: string;
@@ -10,7 +10,7 @@ interface Post {
 }
 
 //=================================================================
-// 1. Header 컴포넌트 (수정 없음)
+// 1. Header 컴포넌트
 //=================================================================
 const navLinks = [
   { to: 'about', label: '자기소개' },
@@ -99,7 +99,7 @@ function Header() {
 
 
 //=================================================================
-// 2. PostEditor 컴포넌트 (1단계에서 수정 완료)
+// 2. PostEditor 컴포넌트
 //=================================================================
 interface PostEditorProps {
   onPostCreated: () => void;
@@ -120,7 +120,7 @@ function PostEditor({ onPostCreated }: PostEditorProps) {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!title || !category || !linkUrl) {
-      setError('제목, 카테고리, Notion 링크는 필수 항목입니다.');
+      setError('제목, 카테고리, GitHub 링크는 필수 항목입니다.');
       return;
     }
     setIsSubmitting(true);
@@ -232,7 +232,7 @@ function PostEditor({ onPostCreated }: PostEditorProps) {
         />
       </div>
 
-      {/* 2. 카테고리 (1단계에서 수정 완료) */}
+      {/* 2. 카테고리 */}
       <div>
         <label htmlFor="category" className="block text-sm font-medium text-gray-300">
           카테고리
@@ -247,7 +247,7 @@ function PostEditor({ onPostCreated }: PostEditorProps) {
         />
       </div>
 
-      {/* 3. GitHub 링크 (1단계에서 수정 완료) */}
+      {/* 3. GitHub 링크 */}
        <div>
         <label htmlFor="linkUrl" className="block text-sm font-medium text-gray-300">
           GitHub 링크
@@ -262,7 +262,7 @@ function PostEditor({ onPostCreated }: PostEditorProps) {
         />
       </div>
 
-      {/* 4. 요약글 (1단계에서 수정 완료) */}
+      {/* 4. 요약글 */}
       <div>
         <label htmlFor="content" className="block text-sm font-medium text-gray-300">
           요약글 (선택 사항)
@@ -278,7 +278,7 @@ function PostEditor({ onPostCreated }: PostEditorProps) {
         />
       </div>
 
-      {/* 5. 이미지 첨부 (요약글용) */}
+      {/* 5. 이미지 첨부 */}
       <div>
         <input
           type="file"
@@ -320,10 +320,15 @@ function PostEditor({ onPostCreated }: PostEditorProps) {
 
 
 //=================================================================
-// 3. 메인 App 컴포넌트 (*** 수정된 부분 ***)
+// 3. 메인 App 컴포넌트
 //=================================================================
 
-// ⬅️ 사용자가 요청한 카테고리 목록 (+ 'All' 추가)
+// 🔥 대소문자 정규화 함수 추가
+function normalizeCategory(category: string): string {
+  return category.toLowerCase().replace(/[\s-]/g, '');
+}
+
+// 카테고리 목록 (표시용)
 const categories = [
   'All', 
   'devops',
@@ -331,14 +336,12 @@ const categories = [
   'DataBase',
   'Network',
   'Operating System',
-  'Data Structure and Algorithm' // 오타 수정
+  'Data Structure and Algorithm'
 ];
 
 function App() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
-  // ⬅️ 1. 선택된 카테고리 state 추가 (기본값 'All')
   const [selectedCategory, setSelectedCategory] = useState('All');
 
   const fetchPosts = () => {
@@ -351,6 +354,7 @@ function App() {
         return res.json();
       })
       .then((data: Post[]) => {
+        console.log('📥 Fetched posts:', data); // 디버깅용
         setPosts(data);
         setIsLoading(false); 
       })
@@ -367,7 +371,6 @@ function App() {
   const handlePostCreated = () => {
     fetchPosts(); 
     
-    // 새 글 작성 후 'study' 섹션으로 스크롤
     const studyElement = document.getElementById('study');
     if (studyElement) {
       const headerOffset = 80; 
@@ -380,10 +383,15 @@ function App() {
     }
   };
 
-  // ⬅️ 2. 선택된 카테고리 기준으로 포스트 필터링
+  // 🔥 카테고리 필터링 로직 수정 (대소문자 무시)
   const filteredPosts = selectedCategory === 'All'
     ? posts
-    : posts.filter(post => post.category === selectedCategory);
+    : posts.filter(post => 
+        normalizeCategory(post.category) === normalizeCategory(selectedCategory)
+      );
+
+  console.log('🔍 Selected:', selectedCategory);
+  console.log('🔍 Filtered posts:', filteredPosts);
 
   return (
     <div className="w-full min-h-screen bg-gray-900 text-white font-sans">
@@ -405,14 +413,12 @@ function App() {
           </p>
         </section>
 
-        {/* ⬅️ 3. "study" 섹션 UI 전체 수정 
-        */}
         <section id="study" className="min-h-screen pt-20">
           <h2 className="text-4xl font-bold border-b-4 border-indigo-500 pb-4">
             공부 및 실습 (Study)
           </h2>
           
-          {/* 3-1. 카테고리 탭 버튼 UI */}
+          {/* 카테고리 탭 버튼 */}
           <div className="flex flex-wrap gap-4 my-8">
             {categories.map((category) => (
               <button
@@ -430,22 +436,30 @@ function App() {
             ))}
           </div>
 
-          {/* 3-2. 필터링된 포스트 카드 목록 */}
+          {/* 현재 카테고리 표시 (디버깅용) */}
+          <p className="text-sm text-gray-500 mb-4">
+            '{selectedCategory}' 카테고리 ({filteredPosts.length}개 게시글)
+          </p>
+
+          {/* 포스트 카드 목록 */}
           <div className="mt-8 grid gap-6">
             {isLoading ? (
               <p className="text-gray-500">포스트를 불러오는 중...</p>
             ) : filteredPosts.length > 0 ? (
               filteredPosts.map((post) => (
-                // 3-3. <a> 태그로 감싸서 GitHub 링크 연결
                 <a
                   key={post.id}
-                  href={post.linkUrl} // ⬅️ GitHub 링크
-                  target="_blank"     // ⬅️ 새 탭에서 열기
+                  href={post.linkUrl}
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="block bg-gray-800 p-6 rounded-lg shadow-xl transition-all hover:-translate-y-1 hover:shadow-indigo-500/30"
                 >
-                  <h3 className="text-2xl font-semibold text-indigo-400">{post.title}</h3>
-                  {/* 요약글(content)이 있을 때만 표시 */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="text-2xl font-semibold text-indigo-400">{post.title}</h3>
+                    <span className="text-xs px-2 py-1 rounded-full bg-indigo-900 text-indigo-300">
+                      {post.category}
+                    </span>
+                  </div>
                   {post.content && (
                     <p className="mt-2 text-gray-300 whitespace-pre-wrap">{post.content}</p>
                   )}
