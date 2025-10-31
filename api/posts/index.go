@@ -14,10 +14,13 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// Post 구조체에 Category와 LinkURL 필드 추가
 type Post struct {
-	ID      int    `json:"id"`
-	Title   string `json:"title"`
-	Content string `json:"content"`
+	ID       int    `json:"id"`
+	Title    string `json:"title"`
+	Content  string `json:"content"`  // 요약글(Summary) 용도
+	Category string `json:"category"` // ⬅️ 추가
+	LinkURL  string `json:"linkUrl"`  // ⬅️ 추가 (JSON 태그는 linkUrl)
 }
 
 var (
@@ -34,19 +37,16 @@ func initDB() error {
 			return
 		}
 
-		// Serverless 환경을 위한 Connection Pool 설정
 		config, err := pgxpool.ParseConfig(databaseUrl)
 		if err != nil {
 			initErr = fmt.Errorf("failed to parse database URL: %w", err)
 			return
 		}
 
-		// Serverless에 최적화된 설정
-		config.MaxConns = 1        // 최대 연결 수를 1로 제한
-		config.MinConns = 0        // 최소 연결 수를 0으로 설정
-		config.MaxConnIdleTime = 0 // idle connection을 즉시 해제
-		config.MaxConnLifetime = 0 // connection lifetime 제한 없음
-		// config.HealthCheckPeriod = 0 // health check 비활성화
+		config.MaxConns = 1
+		config.MinConns = 0
+		config.MaxConnIdleTime = 0
+		config.MaxConnLifetime = 0
 
 		dbpool, err = pgxpool.NewWithConfig(context.Background(), config)
 		if err != nil {
@@ -54,12 +54,14 @@ func initDB() error {
 			return
 		}
 
-		// 테이블 생성
+		// ⬅️ CREATE TABLE 쿼리에 category와 link_url 컬럼 추가
 		_, err = dbpool.Exec(context.Background(), `
 			CREATE TABLE IF NOT EXISTS posts (
 				id SERIAL PRIMARY KEY,
 				title TEXT NOT NULL,
-				content TEXT
+				content TEXT,
+				category TEXT,
+				link_url TEXT 
 			);
 		`)
 		if err != nil {
@@ -91,6 +93,7 @@ func getPostID(path string) (int, bool) {
 	return id, true
 }
 
+// listPosts: ⬅️ SELECT문에 category, link_url 추가
 func listPosts(w http.ResponseWriter, r *http.Request) {
 	conn, err := dbpool.Acquire(r.Context())
 	if err != nil {
@@ -100,7 +103,7 @@ func listPosts(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Release()
 
-	rows, err := conn.Query(r.Context(), "SELECT id, title, content FROM posts ORDER BY id DESC")
+	rows, err := conn.Query(r.Context(), "SELECT id, title, content, category, link_url FROM posts ORDER BY id DESC")
 	if err != nil {
 		log.Printf("Failed to query posts: %v", err)
 		http.Error(w, "Failed to query posts", http.StatusInternalServerError)
@@ -111,7 +114,8 @@ func listPosts(w http.ResponseWriter, r *http.Request) {
 	postList := []Post{}
 	for rows.Next() {
 		var p Post
-		if err := rows.Scan(&p.ID, &p.Title, &p.Content); err != nil {
+		// ⬅️ Scan에 &p.Category, &p.LinkURL 추가
+		if err := rows.Scan(&p.ID, &p.Title, &p.Content, &p.Category, &p.LinkURL); err != nil {
 			log.Printf("Failed to scan post: %v", err)
 			http.Error(w, "Failed to scan post", http.StatusInternalServerError)
 			return
@@ -132,6 +136,7 @@ func listPosts(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// createPost: ⬅️ INSERT문에 category, link_url 추가
 func createPost(w http.ResponseWriter, r *http.Request) {
 	var newPost Post
 	if err := json.NewDecoder(r.Body).Decode(&newPost); err != nil {
@@ -139,8 +144,9 @@ func createPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if newPost.Title == "" {
-		http.Error(w, "Title is required", http.StatusBadRequest)
+	// ⬅️ Title, Category, LinkURL을 필수값으로 검증
+	if newPost.Title == "" || newPost.Category == "" || newPost.LinkURL == "" {
+		http.Error(w, "Title, Category, LinkURL are required", http.StatusBadRequest)
 		return
 	}
 
@@ -152,9 +158,10 @@ func createPost(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Release()
 
+	// ⬅️ INSERT 쿼리 및 파라미터 수정
 	err = conn.QueryRow(r.Context(),
-		"INSERT INTO posts (title, content) VALUES ($1, $2) RETURNING id",
-		newPost.Title, newPost.Content).Scan(&newPost.ID)
+		"INSERT INTO posts (title, content, category, link_url) VALUES ($1, $2, $3, $4) RETURNING id",
+		newPost.Title, newPost.Content, newPost.Category, newPost.LinkURL).Scan(&newPost.ID)
 
 	if err != nil {
 		log.Printf("Failed to create post: %v", err)
@@ -167,6 +174,7 @@ func createPost(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(newPost)
 }
 
+// getPost: ⬅️ SELECT문에 category, link_url 추가
 func getPost(w http.ResponseWriter, r *http.Request, id int) {
 	conn, err := dbpool.Acquire(r.Context())
 	if err != nil {
@@ -177,8 +185,9 @@ func getPost(w http.ResponseWriter, r *http.Request, id int) {
 	defer conn.Release()
 
 	var p Post
+	// ⬅️ SELECT 쿼리 및 Scan 수정
 	err = conn.QueryRow(r.Context(),
-		"SELECT id, title, content FROM posts WHERE id = $1", id).Scan(&p.ID, &p.Title, &p.Content)
+		"SELECT id, title, content, category, link_url FROM posts WHERE id = $1", id).Scan(&p.ID, &p.Title, &p.Content, &p.Category, &p.LinkURL)
 
 	if err != nil {
 		log.Printf("Post not found (ID: %d): %v", id, err)
@@ -190,6 +199,7 @@ func getPost(w http.ResponseWriter, r *http.Request, id int) {
 	json.NewEncoder(w).Encode(p)
 }
 
+// updatePost: ⬅️ UPDATE문에 category, link_url 추가
 func updatePost(w http.ResponseWriter, r *http.Request, id int) {
 	var updatedPost Post
 	if err := json.NewDecoder(r.Body).Decode(&updatedPost); err != nil {
@@ -197,8 +207,9 @@ func updatePost(w http.ResponseWriter, r *http.Request, id int) {
 		return
 	}
 
-	if updatedPost.Title == "" {
-		http.Error(w, "Title is required", http.StatusBadRequest)
+	// ⬅️ Title, Category, LinkURL을 필수값으로 검증
+	if updatedPost.Title == "" || updatedPost.Category == "" || updatedPost.LinkURL == "" {
+		http.Error(w, "Title, Category, LinkURL are required", http.StatusBadRequest)
 		return
 	}
 
@@ -210,9 +221,10 @@ func updatePost(w http.ResponseWriter, r *http.Request, id int) {
 	}
 	defer conn.Release()
 
+	// ⬅️ UPDATE 쿼리 및 파라미터 수정
 	cmdTag, err := conn.Exec(r.Context(),
-		"UPDATE posts SET title = $1, content = $2 WHERE id = $3",
-		updatedPost.Title, updatedPost.Content, id)
+		"UPDATE posts SET title = $1, content = $2, category = $3, link_url = $4 WHERE id = $5",
+		updatedPost.Title, updatedPost.Content, updatedPost.Category, updatedPost.LinkURL, id)
 
 	if err != nil {
 		log.Printf("Failed to update post: %v", err)
@@ -230,6 +242,7 @@ func updatePost(w http.ResponseWriter, r *http.Request, id int) {
 	json.NewEncoder(w).Encode(updatedPost)
 }
 
+// deletePost: (수정 필요 없음)
 func deletePost(w http.ResponseWriter, r *http.Request, id int) {
 	conn, err := dbpool.Acquire(r.Context())
 	if err != nil {
@@ -254,15 +267,14 @@ func deletePost(w http.ResponseWriter, r *http.Request, id int) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// Handler: (수정 필요 없음)
 func Handler(w http.ResponseWriter, r *http.Request) {
-	// DB 초기화
 	if err := initDB(); err != nil {
 		log.Printf("Failed to initialize database: %v", err)
 		http.Error(w, "Database initialization failed", http.StatusInternalServerError)
 		return
 	}
 
-	// CORS 헤더
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")

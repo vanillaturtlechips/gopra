@@ -1,16 +1,17 @@
 import { useState, useEffect, useRef, type FormEvent, type ChangeEvent } from 'react'
 
-//--- Post 구조체 (App.tsx 최상단) ---
+//--- Post 구조체 (1단계에서 수정 완료) ---
 interface Post {
   id: number;
   title: string;
-  content: string;
+  content: string; // 요약글
+  category: string; 
+  linkUrl: string;
 }
 
 //=================================================================
-// 1. Header 컴포넌트 (App.tsx 파일 내부에 포함)
+// 1. Header 컴포넌트 (수정 없음)
 //=================================================================
-// ( ... Header 컴포넌트 코드는 이전과 동일 ... )
 const navLinks = [
   { to: 'about', label: '자기소개' },
   { to: 'study', label: '공부 및 실습' },
@@ -98,18 +99,8 @@ function Header() {
 
 
 //=================================================================
-// 2. PostEditor 컴포넌트 (App.tsx 파일 내부에 포함)
+// 2. PostEditor 컴포넌트 (1단계에서 수정 완료)
 //=================================================================
-/*
- * PresignedUploadResponse 인터페이스는 
- * 'api/upload/index.go'가 반환하는 { "url": "..." } 형식과
- * 맞지 않으므로 주석 처리하거나 제거합니다.
-interface PresignedUploadResponse {
-  uploadUrl: string;
-  finalUrl: string;
-}
-*/
-
 interface PostEditorProps {
   onPostCreated: () => void;
 }
@@ -117,6 +108,8 @@ interface PostEditorProps {
 function PostEditor({ onPostCreated }: PostEditorProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [category, setCategory] = useState('');
+  const [linkUrl, setLinkUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -124,11 +117,10 @@ function PostEditor({ onPostCreated }: PostEditorProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // ( ... handleSubmit 함수는 이전과 동일 ... )
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!title || !content) {
-      setError('제목과 내용을 모두 입력해주세요.');
+    if (!title || !category || !linkUrl) {
+      setError('제목, 카테고리, Notion 링크는 필수 항목입니다.');
       return;
     }
     setIsSubmitting(true);
@@ -140,7 +132,7 @@ function PostEditor({ onPostCreated }: PostEditorProps) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ title, content }),
+        body: JSON.stringify({ title, content, category, linkUrl }),
       });
 
       if (!response.ok) {
@@ -149,6 +141,8 @@ function PostEditor({ onPostCreated }: PostEditorProps) {
 
       setTitle('');
       setContent('');
+      setCategory('');
+      setLinkUrl('');
       onPostCreated(); 
       
       alert('게시글이 성공적으로 등록되었습니다!');
@@ -160,11 +154,6 @@ function PostEditor({ onPostCreated }: PostEditorProps) {
     }
   };
 
-
-  /**
-   * 2. 이미지 업로드 핸들러 (*** 수정된 부분 ***)
-   * JSON 대신 FormData를 사용하도록 수정
-   */
   const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -173,18 +162,12 @@ function PostEditor({ onPostCreated }: PostEditorProps) {
     setError(null);
 
     try {
-      // --- 1. FormData 생성 ---
       const formData = new FormData();
-      formData.append('file', file); // 'file' 키는 api/upload/index.go의 r.FormFile("file")과 일치해야 함
+      formData.append('file', file);
 
-      // --- 2. Go API에 FormData 전송 ---
       const response = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
-        // 'Content-Type': 'multipart/form-data' 헤더는
-        // 브라우저가 body가 FormData일 때 자동으로 생성해줍니다.
-        // (경계(boundary) 값까지 포함해서)
-        // 수동으로 설정하면 오류가 날 수 있으므로 생략합니다.
       });
 
       if (!response.ok) {
@@ -192,16 +175,13 @@ function PostEditor({ onPostCreated }: PostEditorProps) {
          throw new Error(`이미지 업로드 실패: ${errText}`);
       }
       
-      // --- 3. Go API의 응답 ( { "url": "..." } ) 파싱 ---
-      const data = await response.json(); // data.url 사용
+      const data = await response.json();
       
-      // --- 4. 에디터에 마크다운 삽입 ---
       const markdownImage = `\n![${file.name}](${data.url})\n`;
       insertTextAtCursor(markdownImage);
 
     } catch (err) {
       if (err instanceof Error) {
-        // 이전에 보셨던 오류 메시지를 여기서 표시합니다.
         setError(`이미지 업로드 실패: ${err.message}`);
       } else {
         setError('이미지 업로드 중 알 수 없는 오류 발생');
@@ -214,7 +194,6 @@ function PostEditor({ onPostCreated }: PostEditorProps) {
     }
   };
 
-  // ( ... PostEditor의 나머지 함수들(insertTextAtCursor, triggerFileInput)과 JSX는 이전과 동일 ... )
   const insertTextAtCursor = (text: string) => {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -238,6 +217,7 @@ function PostEditor({ onPostCreated }: PostEditorProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* 1. 제목 */}
       <div>
         <label htmlFor="title" className="block text-sm font-medium text-gray-300">
           제목
@@ -251,20 +231,54 @@ function PostEditor({ onPostCreated }: PostEditorProps) {
           className="mt-1 block w-full rounded-md border-gray-700 bg-gray-800 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-lg p-3"
         />
       </div>
+
+      {/* 2. 카테고리 (1단계에서 수정 완료) */}
+      <div>
+        <label htmlFor="category" className="block text-sm font-medium text-gray-300">
+          카테고리
+        </label>
+        <input
+          type="text"
+          id="category"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          placeholder="예: devops, GOlang, DataBase"
+          className="mt-1 block w-full rounded-md border-gray-700 bg-gray-800 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-lg p-3"
+        />
+      </div>
+
+      {/* 3. GitHub 링크 (1단계에서 수정 완료) */}
+       <div>
+        <label htmlFor="linkUrl" className="block text-sm font-medium text-gray-300">
+          GitHub 링크
+        </label>
+        <input
+          type="text"
+          id="linkUrl"
+          value={linkUrl}
+          onChange={(e) => setLinkUrl(e.target.value)}
+          placeholder="GitHub 마크다운 파일 URL을 붙여넣으세요"
+          className="mt-1 block w-full rounded-md border-gray-700 bg-gray-800 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-lg p-3"
+        />
+      </div>
+
+      {/* 4. 요약글 (1단계에서 수정 완료) */}
       <div>
         <label htmlFor="content" className="block text-sm font-medium text-gray-300">
-          내용 (Markdown 지원)
+          요약글 (선택 사항)
         </label>
         <textarea
           id="content"
           ref={textareaRef}
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="내용을 마크다운 형식으로 입력하세요..."
-          rows={10}
+          placeholder="게시글 요약을 입력하세요 (링크 카드의 설명글이 됩니다)"
+          rows={5}
           className="mt-1 block w-full rounded-md border-gray-700 bg-gray-800 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-lg p-3 font-mono"
         />
       </div>
+
+      {/* 5. 이미지 첨부 (요약글용) */}
       <div>
         <input
           type="file"
@@ -280,10 +294,12 @@ function PostEditor({ onPostCreated }: PostEditorProps) {
           disabled={isUploading}
           className="rounded-md bg-gray-600 px-4 py-2 text-sm font-medium text-white hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50"
         >
-          {isUploading ? '업로드 중...' : '이미지 첨부'}
+          {isUploading ? '업로드 중...' : '요약글에 이미지 첨부'}
         </button>
         {isUploading && <span className="ml-4 text-sm text-gray-400">이미지 처리 중...</span>}
       </div>
+
+      {/* 6. 에러 및 제출 버튼 */}
       {error && (
         <div className="rounded-md bg-red-900/50 p-4">
           <p className="text-sm text-red-300">{error}</p>
@@ -304,12 +320,26 @@ function PostEditor({ onPostCreated }: PostEditorProps) {
 
 
 //=================================================================
-// 3. 메인 App 컴포넌트
+// 3. 메인 App 컴포넌트 (*** 수정된 부분 ***)
 //=================================================================
-// ( ... App 컴포넌트의 나머지 코드는 이전과 동일 ... )
+
+// ⬅️ 사용자가 요청한 카테고리 목록 (+ 'All' 추가)
+const categories = [
+  'All', 
+  'devops',
+  'GOlang',
+  'DataBase',
+  'Network',
+  'Operating System',
+  'Data Structure and Algorithm' // 오타 수정
+];
+
 function App() {
   const [posts, setPosts] = useState<Post[]>([]);
-  const [isLoading, setIsLoading] = useState(true); 
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // ⬅️ 1. 선택된 카테고리 state 추가 (기본값 'All')
+  const [selectedCategory, setSelectedCategory] = useState('All');
 
   const fetchPosts = () => {
     setIsLoading(true); 
@@ -337,6 +367,7 @@ function App() {
   const handlePostCreated = () => {
     fetchPosts(); 
     
+    // 새 글 작성 후 'study' 섹션으로 스크롤
     const studyElement = document.getElementById('study');
     if (studyElement) {
       const headerOffset = 80; 
@@ -348,6 +379,11 @@ function App() {
       });
     }
   };
+
+  // ⬅️ 2. 선택된 카테고리 기준으로 포스트 필터링
+  const filteredPosts = selectedCategory === 'All'
+    ? posts
+    : posts.filter(post => post.category === selectedCategory);
 
   return (
     <div className="w-full min-h-screen bg-gray-900 text-white font-sans">
@@ -369,22 +405,59 @@ function App() {
           </p>
         </section>
 
+        {/* ⬅️ 3. "study" 섹션 UI 전체 수정 
+        */}
         <section id="study" className="min-h-screen pt-20">
           <h2 className="text-4xl font-bold border-b-4 border-indigo-500 pb-4">
             공부 및 실습 (Study)
           </h2>
+          
+          {/* 3-1. 카테고리 탭 버튼 UI */}
+          <div className="flex flex-wrap gap-4 my-8">
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                className={`px-4 py-2 rounded-full font-semibold transition-all
+                  ${selectedCategory === category
+                    ? 'bg-indigo-600 text-white shadow-lg'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  }
+                `}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+
+          {/* 3-2. 필터링된 포스트 카드 목록 */}
           <div className="mt-8 grid gap-6">
             {isLoading ? (
               <p className="text-gray-500">포스트를 불러오는 중...</p>
-            ) : posts.length > 0 ? (
-              posts.map((post) => (
-                <div key={post.id} className="bg-gray-800 p-6 rounded-lg shadow-xl transition-transform hover:-translate-y-1">
+            ) : filteredPosts.length > 0 ? (
+              filteredPosts.map((post) => (
+                // 3-3. <a> 태그로 감싸서 GitHub 링크 연결
+                <a
+                  key={post.id}
+                  href={post.linkUrl} // ⬅️ GitHub 링크
+                  target="_blank"     // ⬅️ 새 탭에서 열기
+                  rel="noopener noreferrer"
+                  className="block bg-gray-800 p-6 rounded-lg shadow-xl transition-all hover:-translate-y-1 hover:shadow-indigo-500/30"
+                >
                   <h3 className="text-2xl font-semibold text-indigo-400">{post.title}</h3>
-                  <p className="mt-2 text-gray-300 whitespace-pre-wrap">{post.content}</p>
-                </div>
+                  {/* 요약글(content)이 있을 때만 표시 */}
+                  {post.content && (
+                    <p className="mt-2 text-gray-300 whitespace-pre-wrap">{post.content}</p>
+                  )}
+                </a>
               ))
             ) : (
-              <p className="text-gray-500">아직 작성된 게시글이 없습니다. '글쓰기' 탭에서 첫 글을 작성해보세요!</p>
+              <p className="text-gray-500">
+                {selectedCategory === 'All' 
+                  ? "아직 작성된 게시글이 없습니다. '글쓰기' 탭에서 첫 글을 작성해보세요!"
+                  : `'${selectedCategory}' 카테고리에 게시글이 없습니다.`
+                }
+              </p>
             )}
           </div>
         </section>
@@ -405,7 +478,7 @@ function App() {
 
         <section id="write" className="min-h-screen pt-20">
           <h2 className="text-4xl font-bold border-b-4 border-indigo-500 pb-4">
-            새 글 작성하기
+            새 글 작성하기 (관리자용)
           </h2>
           <div className="mt-8">
             <PostEditor onPostCreated={handlePostCreated} />
