@@ -42,11 +42,11 @@ func initDB() error {
 		}
 
 		// Serverless에 최적화된 설정
-		config.MaxConns = 1          // 최대 연결 수를 1로 제한
-		config.MinConns = 0          // 최소 연결 수를 0으로 설정
-		config.MaxConnIdleTime = 0   // idle connection을 즉시 해제
-		config.MaxConnLifetime = 0   // connection lifetime 제한 없음
-		config.HealthCheckPeriod = 0 // health check 비활성화
+		config.MaxConns = 1        // 최대 연결 수를 1로 제한
+		config.MinConns = 0        // 최소 연결 수를 0으로 설정
+		config.MaxConnIdleTime = 0 // idle connection을 즉시 해제
+		config.MaxConnLifetime = 0 // connection lifetime 제한 없음
+		// config.HealthCheckPeriod = 0 // health check 비활성화
 
 		dbpool, err = pgxpool.NewWithConfig(context.Background(), config)
 		if err != nil {
