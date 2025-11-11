@@ -1,16 +1,17 @@
+# docker-compose.yml
+# "쓰기" 기능(업로드, API 토큰)과 빌드 시 동기화 스크립트(build.args)를 모두 제거한 최종본입니다.
+
 services:
   db:
     image: postgres:15-alpine
     container_name: gopra_db
     restart: always
     env_file:
-      - .env  # 이 줄 추가
+      - .env
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -21,31 +22,42 @@ services:
 
   backend:
     container_name: gopra_backend
+    # --- 태깅 전략 ---
+    # 'gopra_backend:latest' 대신 .env 파일의 $IMAGE_TAG 변수를 사용합니다.
+    # ':-latest'는 $IMAGE_TAG 변수가 없을 경우 사용할 기본값입니다.
+    image: gopra_backend:${IMAGE_TAG:-latest}
     build:
       context: .
       dockerfile: Dockerfile.go
-    ports:
-      - "8080:8080"
+    restart: always
     env_file:
-      - .env  # 이 줄 추가
+      - .env
     environment:
+      # Go 서버가 DB에 연결할 주소
       POSTGRES_URL: ${POSTGRES_URL}
-      BLOB_READ_WRITE_TOKEN: ${BLOB_READ_WRITE_TOKEN}
+      # "쓰기" API가 없으므로 PORTFOLIO_API_TOKEN이 필요 없습니다.
     depends_on:
       db:
         condition: service_healthy
+    # "쓰기" API가 없으므로 이미지 업로드 볼륨이 필요 없습니다.
 
   frontend:
     container_name: gopra_frontend
+    # --- 태깅 전략 ---
+    # 'gopra_frontend:latest' 대신 .env 파일의 $IMAGE_TAG 변수를 사용합니다.
+    image: gopra_frontend:${IMAGE_TAG:-latest}
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      # build.args는 "빌드 시" sync.mjs를 실행할 때만 필요했습니다.
+      # 이제 sync.mjs는 빌드와 분리했으므로 args가 필요 없습니다.
+    restart: always
     ports:
-      - "5173:5173"
-    environment:
-      VITE_API_URL: http://backend:8080
+      - "80:80" # Nginx가 외부 80 포트를 담당합니다.
     depends_on:
       - backend
+    # "쓰기" API가 없으므로 이미지 업로드 볼륨이 필요 없습니다.
 
 volumes:
   postgres_data:
+  # uploads_data 볼륨 정의를 제거합니다.

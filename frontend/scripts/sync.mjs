@@ -10,8 +10,8 @@ const __dirname = path.dirname(__filename);
 
 const {
   POSTGRES_URL,
-  VERCEL_GIT_REPO_OWNER,
-  VERCEL_GIT_REPO_SLUG,
+  GIT_REPO_OWNER,     // ⬅️ VERCEL_GIT_REPO_OWNER 에서 변경
+  GIT_REPO_SLUG,      // ⬅️ VERCEL_GIT_REPO_SLUG 에서 변경
   CONTENT_ROOT_PATH,
 } = process.env;
 
@@ -25,7 +25,8 @@ const TARGET_CATEGORIES = [
   'Data-Structure-and-Algorithm'
 ];
 
-const GITHUB_BASE_URL = `https://github.com/${VERCEL_GIT_REPO_OWNER}/${VERCEL_GIT_REPO_SLUG}/blob/main`;
+// ⬅️ 변수명 변경 적용
+const GITHUB_BASE_URL = `https://github.com/${GIT_REPO_OWNER}/${GIT_REPO_SLUG}/blob/main`;
 
 // 🔥 경로 수정: frontend/scripts/ 에서 프로젝트 루트로 이동
 // frontend/scripts/sync.mjs → 프로젝트 루트
@@ -39,6 +40,7 @@ console.log('📂 Content Directory:', CONTENT_DIR);
  * 로컬 파일 시스템 스캔
  */
 function getLocalFiles() {
+  // ... (이하 코드는 변경 없음) ...
   console.log(`\n🔍 Scanning for .md files in: ${CONTENT_DIR}`);
   const files = [];
 
@@ -89,6 +91,7 @@ function getLocalFiles() {
  * DB에서 게시물 목록 가져오기
  */
 async function getDatabasePosts(sql) {
+  // ... (이하 코드는 변경 없음) ...
   console.log('🔍 Fetching posts from database...');
   try {
     const posts = await sql`
@@ -111,11 +114,11 @@ async function syncPortfolio() {
   console.log('🚀 Starting Portfolio Sync');
   console.log('==============================================\n');
 
-  // 환경 변수 확인
+  // ⬅️ 변수명 변경 적용
   const missingVars = [
     !POSTGRES_URL && 'POSTGRES_URL',
-    !VERCEL_GIT_REPO_OWNER && 'VERCEL_GIT_REPO_OWNER',
-    !VERCEL_GIT_REPO_SLUG && 'VERCEL_GIT_REPO_SLUG',
+    !GIT_REPO_OWNER && 'GIT_REPO_OWNER',
+    !GIT_REPO_SLUG && 'GIT_REPO_SLUG',
   ].filter(Boolean);
 
   if (missingVars.length > 0) {
@@ -125,6 +128,8 @@ async function syncPortfolio() {
     console.warn('⚠️  Continuing build without sync (local dev mode)...\n');
     return;
   }
+  
+  // ... (이하 코드는 변경 없음) ...
 
   console.log('✅ Environment variables validated\n');
 
