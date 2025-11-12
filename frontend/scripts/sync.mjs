@@ -21,8 +21,8 @@ const TARGET_CATEGORIES = [
   'GOlang',
   'DataBase',
   'Network',
-  'Operating-System',
-  'Data-Structure-and-Algorithm'
+  'Operating_System',
+  'Data_Structure_and_Algorithm'
 ];
 
 // ⬅️ 변수명 변경 적용
