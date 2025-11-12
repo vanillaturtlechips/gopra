@@ -9,11 +9,12 @@ interface Post {
   linkUrl: string;
 }
 
-// 2. 네비게이션 링크
+// 2. ⬇️ [네비게이션 수정] "Projects" 추가
 const navLinks = [
   { to: 'about', label: 'About' },
   { to: 'skills', label: 'Skills' },
   { to: 'experience', label: 'Experience' },
+  { to: 'projects', label: 'Projects' }, // ⬅️ "Projects" 추가
   { to: 'study', label: 'Study' },
   { to: 'contact', label: 'Contact' },
 ];
@@ -45,7 +46,10 @@ function Header() {
   };
 
   return (
-    <header className="sticky top-0 w-full h-20 bg-gray-900 bg-opacity-80 backdrop-blur-sm shadow-lg z-50">
+    // ⬇️ [헤더 디자인 수정]
+    // 밋밋한 bg-gray-900 대신, 투명도와 하단 테두리를 추가하여 입체감 부여
+    <header className="sticky top-0 w-full h-20 bg-gray-800/50 backdrop-blur-lg shadow-lg z-50
+                   border-b border-gray-700/50"> 
       <nav className="max-w-5xl mx-auto h-full flex items-center justify-between px-8">
         <a
           href="#about"
@@ -57,7 +61,7 @@ function Header() {
 
         {/* 데스크탑 메뉴 */}
         <div className="hidden md:flex items-center gap-8">
-          {navLinks.map((link) => (
+          {navLinks.map((link) => ( // navLinks가 새 버전으로 업데이트됨
             <a
               key={link.to}
               href={`#${link.to}`}
@@ -106,7 +110,7 @@ function Header() {
 function normalizeCategory(category: string): string {
   return category.toLowerCase().replace(/[\s-]/g, '');
 }
-const categories = [
+const studyCategories = [ // ⬅️ 변수명 변경 (projectCategories와 구분)
   'All',
   'devops',
   'GOlang',
@@ -120,8 +124,9 @@ const categories = [
 export default function App() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedStudyCategory, setSelectedStudyCategory] = useState('All'); // ⬅️ 변수명 변경
 
+  // ... (fetchPosts, useEffect 등은 변경 없음) ...
   const fetchPosts = () => {
     setIsLoading(true);
     fetch('/api/posts')
@@ -143,10 +148,10 @@ export default function App() {
     fetchPosts();
   }, []);
 
-  const filteredPosts = selectedCategory === 'All'
+  const filteredPosts = selectedStudyCategory === 'All'
     ? posts
     : posts.filter(post =>
-        normalizeCategory(post.category) === normalizeCategory(selectedCategory)
+        normalizeCategory(post.category) === normalizeCategory(selectedStudyCategory)
       );
   
   // 하드코딩된 스킬 데이터
@@ -165,7 +170,7 @@ export default function App() {
     { name: 'Prometheus', icon: '📊' },
   ];
 
-  // 하드코딩된 경험 데이터
+  // 하드코딩된 경험 데이터 (타임라인용)
   const experiences = [
     {
       date: 'Sep 2025 - Present',
@@ -175,16 +180,43 @@ export default function App() {
         'Setting up and automating CI/CD pipelines with GitHub Actions',
         'Implementing containerization workflows using Docker',
         'Exploring orchestration with Kubernetes for scalable deployments',
-        'Deploying applications to cloud environments (AWS & Azure)',
-        'Applying Infrastructure as Code (IaC) principles with Terraform and Ansible',
-        'Configuring monitoring & observability using Prometheus and Grafana'
       ]
     },
   ];
 
+  // ⬇️ [신규] 프로젝트 데이터 (하드코딩)
+  const projectCategories = [
+    'All', 'AWS', 'Terraform', 'Docker', 'Kubernetes', 'Go', 'React'
+  ];
+  const [selectedProjectCategory, setSelectedProjectCategory] = useState('All');
+
+  const projects = [
+    { 
+      title: 'Gopra Portfolio (This Site)', 
+      description: 'Go + React 기반의 포트폴리오. Docker Compose로 빌드/배포 자동화.',
+      image: '', // 썸네일 URL (비워두면 회색박스)
+      tags: ['Go', 'React', 'Docker', 'Terraform'] 
+    },
+    { 
+      title: 'Serverless Todo App', 
+      description: 'AWS Lambda, API Gateway, DynamoDB를 사용한 서버리스 투두 앱.',
+      image: '',
+      tags: ['AWS'] 
+    },
+    { 
+      title: 'K8s Cluster Setup', 
+      description: 'Terraform과 Ansible을 사용하여 자동화된 K8s 클러스터 구축.',
+      image: '',
+      tags: ['Kubernetes', 'Terraform'] 
+    },
+  ];
+
+  const filteredProjects = selectedProjectCategory === 'All'
+    ? projects
+    : projects.filter(p => p.tags.includes(selectedProjectCategory));
+
+
   return (
-    // ⬇️ [디자인 수정 1]
-    // 배경에 미묘한 그라데이션을 추가하여 깊이감을 줍니다.
     <div className="w-full min-h-screen bg-[#0f172a] text-gray-300 font-sans
                     bg-gradient-to-tr from-[#0f172a] via-[#0f172a] to-[#1e1b4b]">
       
@@ -193,10 +225,11 @@ export default function App() {
       <main className="max-w-5xl mx-auto p-8">
 
         {/* =================================
-        섹션 1: About (Hero)
+        섹션 1: About (Hero) (변경 없음)
         =================================
         */}
         <section id="about" className="min-h-screen flex flex-col items-center justify-center text-center -mt-20">
+          {/* ... (Hero 섹션 코드는 이전과 동일) ... */}
           <h1 className="text-6xl md:text-8xl font-bold text-white tracking-tight">
             Myong G. Kim
           </h1>
@@ -213,14 +246,12 @@ export default function App() {
               href="#contact"
               onClick={(e) => handleScrollClick(e, 'contact')}
               className="px-6 py-3 rounded-full bg-indigo-600 text-white font-semibold shadow-lg transition-all 
-                         hover:bg-indigo-500 hover:-translate-y-1 hover:shadow-indigo-500/50" // ⬅️ Glow 효과
+                         hover:bg-indigo-500 hover:-translate-y-1 hover:shadow-indigo-500/50"
             >
               Let's Connect
             </a>
-
-            {/* ⬇️ [디자인 수정 2] "GH" 텍스트 대신 실제 SVG 아이콘 사용 */}
             <a
-              href="https://github.com/your-github" // TODO: 본인 GitHub 주소로 변경
+              href="https://github.com/your-github"
               target="_blank" rel="noopener noreferrer"
               title="GitHub"
               className="w-14 h-14 rounded-full bg-gray-700 bg-opacity-20 backdrop-blur-lg flex items-center justify-center 
@@ -230,10 +261,8 @@ export default function App() {
                 <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.477 2 12C2 16.418 5.136 20.16 9.25 21.508V18.66C7.545 19.065 6.833 17.81 6.57 17.15C6.38 16.665 5.86 15.69 5.405 15.395C5.04 15.165 4.5 14.65 5.385 14.63C6.275 14.605 6.78 15.42 7.02 15.825C7.99 17.48 9.7 17.02 10.365 16.72C10.455 16.08 10.72 15.615 11.025 15.345C8.82 15.105 6.48 14.24 6.48 10.815C6.48 9.87 6.825 9.09 7.37 8.5C7.28 8.265 6.97 7.32 7.465 6.135C7.465 6.135 8.29 5.88 10.35 7.215C11.14 7.005 11.985 6.9 12.83 6.9C13.675 6.9 14.52 7.005 15.31 7.215C17.37 5.88 18.195 6.135 18.195 6.135C18.69 7.32 18.38 8.265 18.29 8.5C18.835 9.09 19.18 9.87 19.18 10.815C19.18 14.25 16.83 15.105 14.625 15.345C15.015 15.69 15.3 16.32 15.3 17.22V21.508C19.414 20.16 22.55 16.418 22.55 12C22.55 6.477 18.073 2 12.55 2H12Z" />
               </svg>
             </a>
-            
-            {/* ⬇️ [디자인 수정 2] "IN" 텍스트 대신 실제 SVG 아이콘 사용 */}
             <a
-              href="https://linkedin.com/in/your-linkedin" // TODO: 본인 LinkedIn 주소로 변경
+              href="https://linkedin.com/in/your-linkedin"
               target="_blank" rel="noopener noreferrer"
               title="LinkedIn"
               className="w-14 h-14 rounded-full bg-gray-700 bg-opacity-20 backdrop-blur-lg flex items-center justify-center 
@@ -244,7 +273,6 @@ export default function App() {
               </svg>
             </a>
           </div>
-
           <div className="absolute bottom-10 text-gray-500 animate-bounce">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 mx-auto">
               <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 13.5a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
@@ -255,23 +283,23 @@ export default function App() {
         </section>
 
         {/* =================================
-        섹션 2: Skills
+        섹션 2: Skills (변경 없음)
         =================================
         */}
         <section id="skills" className="min-h-screen pt-20">
-          <h2 className="text-4xl font-bold text-center text-white">
+           {/* ... (Skills 섹션 코드는 이전과 동일) ... */}
+           <h2 className="text-4xl font-bold text-center text-white">
             Technical Skills
           </h2>
           <p className="mt-4 text-lg text-center text-gray-400 max-w-2xl mx-auto">
             A curated selection of my expertise in DevOps and Cloud Computing.
           </p>
-
           <div className="mt-16 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
             {skills.map((skill) => (
               <div
                 key={skill.name}
                 className="bg-gray-700 bg-opacity-20 backdrop-blur-lg rounded-xl p-6 flex flex-col items-center justify-center gap-4 
-                           transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/40" // ⬅️ Glow 효과
+                           transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/40 ring-1 ring-white/10" // ⬅️ 테두리 추가
               >
                 <div className="text-4xl">{skill.icon}</div> 
                 <p className="font-semibold text-white">{skill.name}</p>
@@ -280,7 +308,7 @@ export default function App() {
           </div>
           <div className="text-center mt-12">
             <button className="px-8 py-3 rounded-full bg-indigo-600 text-white font-semibold shadow-lg transition-all 
-                               hover:bg-indigo-500 hover:-translate-y-1 hover:shadow-indigo-500/50" // ⬅️ Glow 효과
+                               hover:bg-indigo-500 hover:-translate-y-1 hover:shadow-indigo-500/50"
             >
               Show All (37)
             </button>
@@ -288,25 +316,23 @@ export default function App() {
         </section>
 
         {/* =================================
-        섹션 3: Experience (수직 타임라인)
+        섹션 3: Experience (변경 없음)
         =================================
         */}
         <section id="experience" className="min-h-screen pt-20">
-          <h2 className="text-4xl font-bold text-center text-white">
+           {/* ... (Experience 섹션 코드는 이전과 동일) ... */}
+           <h2 className="text-4xl font-bold text-center text-white">
             Professional Experience & Projects
           </h2>
           <p className="mt-4 text-lg text-center text-gray-400 max-w-2xl mx-auto">
             Highlights of my career and key projects showcasing my skills & impact.
           </p>
-          
           <div className="mt-16 max-w-3xl mx-auto">
             <div className="relative border-l-2 border-gray-700 ml-6 space-y-16 py-10">
-              
               {experiences.map((exp, index) => (
-                <div key={index} className="relative group"> {/* ⬅️ group 추가 */}
+                <div key={index} className="relative group"> 
                   <div className="absolute -left-3.5 mt-2 w-7 h-7 bg-indigo-600 rounded-full border-4 border-gray-800
                               transition-all group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-indigo-500/50" />
-                  
                   <div className="ml-10 transition-all group-hover:pl-2">
                     <p className="text-sm font-semibold text-indigo-400">{exp.date}</p>
                     <h3 className="mt-1 text-2xl font-bold text-white">{exp.title}</h3>
@@ -319,13 +345,79 @@ export default function App() {
                   </div>
                 </div>
               ))}
-
             </div>
           </div>
         </section>
 
         {/* =================================
-        섹션 4: Study (글래스모피즘 필터 적용)
+        ⬇️ [신규] 섹션 4: Projects (image_4ae910.png)
+        =================================
+        */}
+        <section id="projects" className="min-h-screen pt-20">
+          <h2 className="text-4xl font-bold text-center text-white">
+            My Projects
+          </h2>
+          <p className="mt-4 text-lg text-center text-gray-400 max-w-2xl mx-auto">
+            A collection of innovative projects showcasing technical expertise & creativity.
+          </p>
+
+          {/* ⬇️ [디자인 수정] 필터 카드 스타일 수정 (Study와 동일) */}
+          <div className="my-12 rounded-2xl bg-gray-600/20 p-6 md:p-8 backdrop-blur-xl shadow-xl ring-1 ring-white/10">
+            <h3 className="text-sm font-semibold text-gray-400 mb-4">
+              Filter by tags
+            </h3>
+            <div className="flex flex-wrap gap-3">
+              {projectCategories.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => setSelectedProjectCategory(category)}
+                  className={`px-4 py-2 rounded-full font-semibold text-sm transition-all
+                    ${selectedProjectCategory === category
+                      ? 'bg-indigo-600 text-white shadow-lg'
+                      : 'bg-gray-700 bg-opacity-50 text-gray-300 hover:bg-gray-600 hover:shadow-lg hover:shadow-indigo-500/30'
+                    }
+                  `}
+                >
+                  {category}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* ⬇️ 3열 카드 그리드 (image_4ae910.png 참고) */}
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+            {filteredProjects.map((project) => (
+              <a
+                key={project.title}
+                href="#" // TODO: 프로젝트 링크 추가
+                className="block bg-gray-700/50 rounded-lg shadow-xl transition-all 
+                             hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/40 
+                             overflow-hidden ring-1 ring-white/10" // ⬅️ 카드 스타일 수정
+              >
+                {/* 썸네일 (이미지 없으면 회색 박스) */}
+                <div className="h-40 bg-gray-600/50 w-full flex items-center justify-center text-gray-500">
+                  {project.image ? <img src={project.image} alt={project.title} className="w-full h-full object-cover" /> : '(Thumbnail)'}
+                </div>
+                
+                <div className="p-6">
+                  <h3 className="text-xl font-semibold text-white">{project.title}</h3>
+                  <p className="mt-2 text-gray-400 text-sm">{project.description}</p>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {project.tags.map(tag => (
+                      <span key={tag} className="text-xs px-2 py-1 rounded-full bg-indigo-900 text-indigo-300 font-medium">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+        </section>
+
+
+        {/* =================================
+        섹션 5: Study (기존 섹션 4)
         =================================
         */}
         <section id="study" className="min-h-screen pt-20">
@@ -336,19 +428,20 @@ export default function App() {
             Insights, tutorials, and thoughts on DevOps, cloud technologies, and software development.
           </p>
 
-          <div className="my-12 rounded-2xl bg-gray-700 bg-opacity-20 p-6 md:p-8 backdrop-blur-lg shadow-xl ring-1 ring-gray-500/20">
+          {/* ⬇️ [디자인 수정] 필터 카드 스타일 (배경 어두워지는 문제 해결) */}
+          <div className="my-12 rounded-2xl bg-gray-600/20 p-6 md:p-8 backdrop-blur-xl shadow-xl ring-1 ring-white/10">
             <h3 className="text-sm font-semibold text-gray-400 mb-4">
               Filter by tags
             </h3>
             <div className="flex flex-wrap gap-3">
-              {categories.map((category) => (
+              {studyCategories.map((category) => (
                 <button
                   key={category}
-                  onClick={() => setSelectedCategory(category)}
+                  onClick={() => setSelectedStudyCategory(category)}
                   className={`px-4 py-2 rounded-full font-semibold text-sm transition-all
-                    ${selectedCategory === category
+                    ${selectedStudyCategory === category
                       ? 'bg-indigo-600 text-white shadow-lg'
-                      : 'bg-gray-700 bg-opacity-50 text-gray-300 hover:bg-gray-600 hover:shadow-lg hover:shadow-indigo-500/30' // ⬅️ Glow 효과
+                      : 'bg-gray-700 bg-opacity-50 text-gray-300 hover:bg-gray-600 hover:shadow-lg hover:shadow-indigo-500/30'
                     }
                   `}
                 >
@@ -359,9 +452,10 @@ export default function App() {
           </div>
           
           <p className="text-sm text-gray-500 mb-6">
-            '{selectedCategory}' 카테고리 ({filteredPosts.length}개 게시글)
+            '{selectedStudyCategory}' 카테고리 ({filteredPosts.length}개 게시글)
           </p>
 
+          {/* ⬇️ [디자인 수정] 블로그 카드 스타일 (배경 어두워지는 문제 해결) */}
           <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
             {isLoading ? (
               <p className="text-gray-500 col-span-full">포스트를 불러오는 중...</p>
@@ -372,8 +466,9 @@ export default function App() {
                   href={post.linkUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block bg-gray-800 rounded-lg shadow-xl transition-all 
-                             hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/40 overflow-hidden" // ⬅️ Glow 효과
+                  className="block bg-gray-700/50 rounded-lg shadow-xl transition-all 
+                             hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/40 
+                             overflow-hidden ring-1 ring-white/10" // ⬅️ 카드 스타일 수정
                 >
                   <div className="p-6">
                     <span className="text-xs px-2 py-1 rounded-full bg-indigo-900 text-indigo-300 font-medium">
@@ -388,9 +483,9 @@ export default function App() {
               ))
             ) : (
               <p className="text-gray-500 col-span-full">
-                {selectedCategory === 'All'
+                {selectedStudyCategory === 'All'
                   ? "아직 작성된 게시글이 없습니다."
-                  : `'${selectedCategory}' 카테고리에 게시글이 없습니다.`
+                  : `'${selectedStudyCategory}' 카테고리에 게시글이 없습니다.`
                 }
               </p>
             )}
@@ -398,36 +493,35 @@ export default function App() {
         </section>
 
         {/* =================================
-        섹션 5: Contact
+        섹션 6: Contact (기존 섹션 5)
         =================================
         */}
         <section id="contact" className="min-h-screen pt-20">
+           {/* ⬇️ [디자인 수정] 컨택트 카드 스타일 (배경 어두워지는 문제 해결) */}
           <h2 className="text-4xl font-bold text-center text-white">
             Connect With Me
           </h2>
           <p className="mt-4 text-lg text-center text-gray-400 max-w-2xl mx-auto">
             Have a project in mind or a question? Reach out and let's turn your ideas into reality.
           </p>
-
-          <div className="mt-16 max-w-4xl mx-auto bg-gray-700 bg-opacity-20 backdrop-blur-lg rounded-xl shadow-2xl p-8 md:p-12">
+          <div className="mt-16 max-w-4xl mx-auto bg-gray-700/20 backdrop-blur-xl rounded-xl shadow-2xl p-8 md:p-12 ring-1 ring-white/10">
+            {/* ... (Contact 폼 내용은 이전과 동일) ... */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-              
               <div className="space-y-6">
                 <h3 className="text-2xl font-bold text-white">Contact Info</h3>
                 <div>
                   <p className="text-gray-400">Email Me:</p>
                   <a href="mailto:your-email@gmail.com" className="text-indigo-400 font-medium hover:underline">
-                    your-email@gmail.com {/* TODO: 이메일 변경 */}
+                    your-email@gmail.com
                   </a>
                 </div>
                 <div>
                   <p className="text-gray-400">GitHub:</p>
                   <a href="https://github.com/your-github" target="_blank" rel="noopener noreferrer" className="text-indigo-400 font-medium hover:underline">
-                    github.com/your-github {/* TODO: 깃허브 변경 */}
+                    github.com/your-github
                   </a>
                 </div>
               </div>
-
               <form className="md:col-span-2 space-y-6">
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-300">Name</label>
@@ -458,7 +552,7 @@ export default function App() {
       </main>
 
       {/* =================================
-      푸터
+      푸터 (변경 없음)
       =================================
       */}
       <footer className="text-center p-8 border-t border-gray-700 mt-20">
