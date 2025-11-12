@@ -1,33 +1,23 @@
-// frontend/src/App.tsx
-// "글쓰기" UI (PostEditor)와 관련 로직(handlePostCreated, API_TOKEN)이
-// 모두 제거된 "읽기 전용" UI입니다.
+import { useState, useEffect } from 'react'
 
-import { useState, useEffect, useRef /* ⬅️ FormEvent, ChangeEvent 제거 */ } from 'react'
-
-//--- Post 구조체 (변경 없음) ---
 interface Post {
   id: number;
   title: string;
-  content: string; // 요약글
+  content: string;
   category: string; 
   linkUrl: string;
 }
 
-//=================================================================
-// 1. Header 컴포넌트 ("글쓰기" 링크 제거)
-//=================================================================
 const navLinks = [
   { to: 'about', label: '자기소개' },
   { to: 'study', label: '공부 및 실습' },
   { to: 'project', label: '프로젝트' },
-  // { to: 'write', label: '글쓰기' }, // ⬅️ "글쓰기" 링크 삭제
   { to: 'contact', label: '연락처' },
 ]
 
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // 스크롤 이동 핸들러 (변경 없음)
   const handleScrollClick = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
     e.preventDefault();
     const targetElement = document.getElementById(targetId);
@@ -55,7 +45,6 @@ function Header() {
           myong12.site
         </a>
 
-        {/* 데스크탑 네비게이션 링크 */}
         <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
             <a
@@ -69,7 +58,6 @@ function Header() {
           ))}
         </div>
         
-        {/* 모바일 메뉴 버튼 (변경 없음) */}
         <div className="md:hidden">
           <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-gray-300 hover:text-white focus:outline-none">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -83,7 +71,6 @@ function Header() {
         </div>
       </nav>
       
-      {/* 모바일 드롭다운 메뉴 (변경 없음) */}
       {isMenuOpen && (
         <div className="md:hidden absolute w-full bg-gray-800 shadow-lg py-2">
           {navLinks.map((link) => (
@@ -102,23 +89,10 @@ function Header() {
   )
 }
 
-
-//=================================================================
-// 2. PostEditor 컴포넌트 ⬅️ 전체 삭제
-//=================================================================
-// (PostEditorProps, PostEditor 함수가 모두 제거되었습니다.)
-
-
-//=================================================================
-// 3. 메인 App 컴포넌트
-//=================================================================
-
-// 대소문자 정규화 함수 (변경 없음)
 function normalizeCategory(category: string): string {
   return category.toLowerCase().replace(/[\s-]/g, '');
 }
 
-// 카테고리 목록 (변경 없음)
 const categories = [
   'All', 
   'devops',
@@ -134,10 +108,9 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('All');
 
-  // API 서버에서 포스트 목록을 가져오는 함수 (변경 없음)
   const fetchPosts = () => {
     setIsLoading(true); 
-    fetch('/api/posts') // main.go의 GET 핸들러 호출
+    fetch('/api/posts')
       .then((res) => {
         if (!res.ok) {
           throw new Error('Network response was not ok');
@@ -155,27 +128,15 @@ function App() {
       });
   };
 
-  // 컴포넌트 마운트 시 포스트 목록 가져오기 (변경 없음)
   useEffect(() => {
     fetchPosts();
   }, []); 
 
-  // ⬅️ PostEditor가 사라졌으므로 handlePostCreated 함수도 제거
-  /*
-  const handlePostCreated = () => {
-    // ...
-  };
-  */
-
-  // 카테고리 필터링 로직 (변경 없음)
   const filteredPosts = selectedCategory === 'All'
     ? posts
     : posts.filter(post => 
         normalizeCategory(post.category) === normalizeCategory(selectedCategory)
       );
-
-  // console.log('🔍 Selected:', selectedCategory);
-  // console.log('🔍 Filtered posts:', filteredPosts);
 
   return (
     <div className="w-full min-h-screen bg-gray-900 text-white font-sans">
@@ -202,7 +163,6 @@ function App() {
             공부 및 실습 (Study)
           </h2>
           
-          {/* 카테고리 탭 버튼 (변경 없음) */}
           <div className="flex flex-wrap gap-4 my-8">
             {categories.map((category) => (
               <button
@@ -211,7 +171,7 @@ function App() {
                 className={`px-4 py-2 rounded-full font-semibold transition-all
                   ${selectedCategory === category
                     ? 'bg-indigo-600 text-white shadow-lg'
-                    * 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                   }
                 `}
               >
@@ -220,12 +180,10 @@ function App() {
             ))}
           </div>
 
-          {/* 현재 카테고리 표시 (변경 없음) */}
           <p className="text-sm text-gray-500 mb-4">
             '{selectedCategory}' 카테고리 ({filteredPosts.length}개 게시글)
           </p>
 
-          {/* 포스트 카드 목록 (변경 없음) */}
           <div className="mt-8 grid gap-6">
             {isLoading ? (
               <p className="text-gray-500">포스트를 불러오는 중...</p>
@@ -233,7 +191,7 @@ function App() {
               filteredPosts.map((post) => (
                 <a
                   key={post.id}
-                  href={post.linkUrl} // GitHub 링크로 이동
+                  href={post.linkUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block bg-gray-800 p-6 rounded-lg shadow-xl transition-all hover:-translate-y-1 hover:shadow-indigo-500/30"
@@ -245,7 +203,6 @@ function App() {
                     </span>
                   </div>
                   {post.content && (
-                    // sync.mjs가 넣어준 요약글을 렌더링
                     <p className="mt-2 text-gray-300 whitespace-pre-wrap">{post.content}</p>
                   )}
                 </a>
@@ -274,10 +231,6 @@ function App() {
             </div>
           </div>
         </section>
-
-        {/* ⬅️ "새 글 작성하기 (관리자용)" 섹션(<section id="write">)이
-          모두 제거되었습니다.
-        */}
 
         <section id="contact" className="min-h-screen pt-20">
           <h2 className="text-4xl font-bold border-b-4 border-indigo-500 pb-4">
