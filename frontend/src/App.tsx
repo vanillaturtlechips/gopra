@@ -213,8 +213,8 @@ export default function App() {
 
   // === 7. 렌더링 (return 문) ===
   return (
-	  <div className="w-full min-h-screen text-gray-300 font-sans">
-
+	  <div className="w-full min-h-screen text-gray-300 font-sans
+                    bg-[#0f172a] bg-gradient-to-tr from-[#0f172a] via-[#0f172a] to-[#1e1b4b]">
       <Aurora
         colorStops={["#3A29FF", "#FF94B4", "#FF3232"]}
         blend={0.5}
