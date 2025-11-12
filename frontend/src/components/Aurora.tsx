@@ -3,6 +3,7 @@ import { Renderer, Program, Mesh, Color, Triangle } from 'ogl';
 
 import './Aurora.css';
 
+// ❗️ '가짜' 공백( )을 모두 '진짜' 공백( )으로 수정한 코드입니다.
 const VERT = `#version 300 es
 in vec2 position;
 void main() {
@@ -10,6 +11,7 @@ void main() {
 }
 `;
 
+// ❗️ '가짜' 공백( )을 모두 '진짜' 공백( )으로 수정한 코드입니다.
 const FRAG = `#version 300 es
 precision highp float;
 
@@ -70,15 +72,15 @@ struct ColorStop {
   float position;
 };
 
-#define COLOR_RAMP(colors, factor, finalColor) {              \
-  int index = 0;                                            \
-  for (int i = 0; i < 2; i++) {                               \
-     ColorStop currentColor = colors[i];                    \
-     bool isInBetween = currentColor.position <= factor;    \
-     index = int(mix(float(index), float(i), float(isInBetween))); \
-  }                                                         \
-  ColorStop currentColor = colors[index];                   \
-  ColorStop nextColor = colors[index + 1];                  \
+#define COLOR_RAMP(colors, factor, finalColor) { \
+  int index = 0; \
+  for (int i = 0; i < 2; i++) { \
+    ColorStop currentColor = colors[i]; \
+    bool isInBetween = currentColor.position <= factor; \
+    index = int(mix(float(index), float(i), float(isInBetween))); \
+  } \
+  ColorStop currentColor = colors[index]; \
+  ColorStop nextColor = colors[index + 1]; \
   float range = nextColor.position - currentColor.position; \
   float lerpFactor = (factor - currentColor.position) / range; \
   finalColor = mix(currentColor.color, nextColor.color, lerpFactor); \
@@ -157,7 +159,7 @@ export default function Aurora(props: AuroraProps) {
       delete geometry.attributes.uv;
     }
 
-    const colorStopsArray = colorStops.map(hex => {
+    const colorStopsArray = (propsRef.current.colorStops ?? colorStops).map(hex => {
       const c = new Color(hex);
       return [c.r, c.g, c.b];
     });
@@ -167,10 +169,10 @@ export default function Aurora(props: AuroraProps) {
       fragment: FRAG,
       uniforms: {
         uTime: { value: 0 },
-        uAmplitude: { value: amplitude },
+        uAmplitude: { value: propsRef.current.amplitude ?? amplitude },
         uColorStops: { value: colorStopsArray },
         uResolution: { value: [ctn.offsetWidth, ctn.offsetHeight] },
-        uBlend: { value: blend }
+        uBlend: { value: propsRef.current.blend ?? blend }
       }
     });
 
@@ -181,9 +183,10 @@ export default function Aurora(props: AuroraProps) {
     const update = (t: number) => {
       animateId = requestAnimationFrame(update);
       const { time = t * 0.01, speed = 1.0 } = propsRef.current;
+      
       if (program) {
-        program.uniforms.uTime.value = time * speed * 0.1;
-        program.uniforms.uAmplitude.value = propsRef.current.amplitude ?? 1.0;
+        program.uniforms.uTime.value = time * speed; 
+        program.uniforms.uAmplitude.value = propsRef.current.amplitude ?? amplitude;
         program.uniforms.uBlend.value = propsRef.current.blend ?? blend;
         const stops = propsRef.current.colorStops ?? colorStops;
         program.uniforms.uColorStops.value = stops.map((hex: string) => {
@@ -204,9 +207,9 @@ export default function Aurora(props: AuroraProps) {
         ctn.removeChild(gl.canvas);
       }
       gl.getExtension('WEBGL_lose_context')?.loseContext();
+      program = undefined; 
     };
-  }, [amplitude]);
+  }, [amplitude, blend, colorStops]);
 
   return <div ref={ctnDom} className="aurora-container" />;
 }
-

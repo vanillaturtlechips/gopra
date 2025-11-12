@@ -1,0 +1,273 @@
+/* frontend/src/components/StaggeredMenu.css */
+
+.staggered-menu-wrapper {
+  --sm-accent: #5227FF;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* ❗️ [수정] isFixed={true}일 때 헤더가 고정되도록 수정 */
+.staggered-menu-wrapper.fixed-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%; /* ❗️ 너비 추가 */
+  z-index: 99; /* ❗️ z-index를 99로 설정 */
+  height: 0; /* ❗️ 높이를 0으로 설정 (콘텐츠를 밀어내지 않도록) */
+  pointer-events: none; /* ❗️ 메뉴 외 영역 클릭 가능하게 */
+}
+
+.staggered-menu-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 2.5rem 3rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 102;
+  pointer-events: auto; /* ❗️ 헤더 버튼은 클릭 가능하게 */
+}
+
+.staggered-menu-wrapper[data-position="right"] .staggered-menu-header {
+  flex-direction: row-reverse;
+}
+
+.sm-logo {
+  line-height: 0;
+  opacity: 1;
+  transition: opacity 0.3s;
+}
+/* ❗️ 메뉴가 열렸을 때 로고 숨기기 */
+.staggered-menu-wrapper[data-open] .sm-logo {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ❗️ 텍스트 로고 스타일 추가 */
+.sm-logo-text {
+  font-size: 1.5rem; /* 24px */
+  font-weight: 700;
+  color: #a5b4fc; /* indigo-400 */
+  text-decoration: none;
+  transition: color 0.3s;
+}
+.sm-logo-text:hover {
+  color: #c7d2fe; /* indigo-300 */
+}
+
+.sm-logo-img {
+  height: 24px;
+  width: auto;
+  min-width: 110px;
+}
+
+.sm-toggle {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: #fff;
+  transition: color 0.3s ease-out;
+}
+.sm-toggle:hover {
+  color: var(--sm-accent, #5227FF);
+}
+
+.sm-toggle-textWrap {
+  display: block;
+  overflow: hidden;
+  position: relative;
+  width: 3.25em;
+  height: 1.2em;
+}
+.sm-toggle-textInner {
+  display: block;
+  position: relative;
+}
+.sm-toggle-line {
+  display: block;
+  height: 1.2em;
+}
+
+.sm-icon {
+  width: 28px;
+  height: 28px;
+  display: block;
+  position: relative;
+}
+.sm-icon-line {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: currentColor;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.sm-prelayers {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 100;
+  overflow: hidden;
+  pointer-events: none;
+}
+.staggered-menu-wrapper[data-position="left"] .sm-prelayers {
+  transform: scaleX(-1);
+}
+.sm-prelayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #35353c;
+}
+.sm-prelayer:nth-child(1) {
+  background: #1e1e22;
+}
+.sm-prelayer:nth-child(2) {
+  background: #35353c;
+}
+.sm-prelayer:nth-child(3) {
+  background: #B19EEF;
+}
+
+.staggered-menu-panel {
+  position: fixed;
+  top: 0;
+  /* ❗️ [수정] 꽉 차는 문제 해결 (right/left) */
+  width: 100%;
+  height: 100%;
+  z-index: 101;
+  overflow-y: auto;
+  pointer-events: auto;
+  background: #fff;
+  color: #1a1a1a;
+  
+  /* ❗️ 오른쪽/왼쪽 패널 크기 지정 */
+  @media (min-width: 640px) {
+    width: 60%; /* 기본값 */
+  }
+  @media (min-width: 1024px) {
+    width: 40%; /* 더 큰 화면 */
+  }
+}
+
+/* ❗️ [수정] 꽉 차는 문제 해결 */
+.staggered-menu-wrapper[data-position="right"] .staggered-menu-panel {
+  left: auto;
+  right: 0;
+}
+.staggered-menu-wrapper[data-position="left"] .staggered-menu-panel {
+  left: 0;
+  right: auto;
+}
+
+
+.staggered-menu-wrapper[data-position="left"] .staggered-menu-panel {
+  transform: scaleX(-1);
+}
+.staggered-menu-wrapper[data-position="left"] .sm-panel-inner {
+  transform: scaleX(-1);
+}
+
+.sm-panel-inner {
+  padding: 10vh 4rem 15vh 10vw;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+@media (max-width: 768px) {
+  .sm-panel-inner {
+    padding: 10vh 2rem 15vh 2rem;
+  }
+}
+
+.sm-panel-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  counter-reset: item-counter;
+}
+.sm-panel-itemWrap {
+  margin: 0.25rem 0;
+  overflow: hidden;
+}
+.sm-panel-item {
+  display: block;
+  color: #1a1a1a;
+  text-decoration: none;
+  font-size: clamp(2.5rem, 9vw, 6.5rem);
+  line-height: 1.1;
+  font-weight: 700;
+  padding: 0.25em 0;
+  position: relative;
+}
+.sm-panel-item:hover .sm-panel-itemLabel {
+  color: var(--sm-accent, #5227FF);
+}
+
+.sm-panel-list[data-numbering] .sm-panel-item {
+  counter-increment: item-counter;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+.sm-panel-list[data-numbering] .sm-panel-item::before {
+  content: '0' counter(item-counter);
+  font-size: 0.2em;
+  font-weight: 500;
+  color: #888;
+  opacity: var(--sm-num-opacity, 0);
+  transition: opacity 0.3s;
+}
+
+.sm-panel-itemLabel {
+  display: block;
+  position: relative;
+  transition: color 0.3s;
+}
+
+.sm-socials {
+  margin-top: 5vh;
+  border-top: 1px solid #ddd;
+  padding-top: 3vh;
+}
+.sm-socials-title {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #888;
+  margin-bottom: 2vh;
+}
+.sm-socials-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  gap: 2.5rem;
+}
+.sm-socials-link {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+.sm-socials-link:hover {
+  color: var(--sm-accent, #5227FF);
+}

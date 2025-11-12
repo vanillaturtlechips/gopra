@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-
-// 1. Aurora 컴포넌트 임포트
 import Aurora from './components/Aurora';
-// 2. ❗️수정된 Aurora.css 임포트❗️
 import './components/Aurora.css';
+import StaggeredMenu from './components/StaggeredMenu';
 
-// --- (Post 인터페이스, 스크롤 함수, Header 함수 등은 이전과 동일) ---
+// lucide-react에서 실제로 존재하는 아이콘들만 임포트
+import { 
+  Cloud, Cpu, Container, GitBranch, Github, 
+  Heart, Rocket, Server, Anchor, Box 
+} from 'lucide-react';
 
 // Post 인터페이스
 interface Post {
@@ -16,95 +18,6 @@ interface Post {
   linkUrl: string;
 }
 
-// 네비게이션 링크 ("Projects" 포함)
-const navLinks = [
-  { to: 'about', label: 'About' },
-  { to: 'skills', label: 'Skills' },
-  { to: 'experience', label: 'Experience' },
-  { to: 'projects', label: 'Projects' },
-  { to: 'study', label: 'Study' },
-  { to: 'contact', label: 'Contact' },
-];
-
-// 스크롤 유틸리티 함수
-const handleScrollClick = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
-  e.preventDefault();
-  const targetElement = document.getElementById(targetId);
-  if (targetElement) {
-    const headerOffset = 80;
-    const elementPosition = targetElement.getBoundingClientRect().top;
-    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-    window.scrollTo({
-      top: offsetPosition,
-      behavior: "smooth"
-    });
-  }
-};
-
-
-// Header 컴포넌트
-function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  const onLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
-    handleScrollClick(e, targetId);
-    setIsMenuOpen(false); 
-  };
-
-  return (
-    <header className="sticky top-0 w-full h-20 bg-gray-800/50 backdrop-blur-lg shadow-lg z-50
-                   border-b border-gray-700/50"> 
-      <nav className="max-w-5xl mx-auto h-full flex items-center justify-between px-8">
-        <a
-          href="#about"
-          onClick={(e) => onLinkClick(e, 'about')} 
-          className="text-2xl font-bold text-indigo-400 cursor-pointer hover:text-indigo-300"
-        >
-          myong12.site
-        </a>
-        <div className="hidden md:flex items-center gap-8">
-          {navLinks.map((link) => (
-            <a
-              key={link.to}
-              href={`#${link.to}`}
-              onClick={(e) => onLinkClick(e, link.to)}
-              className="text-gray-300 hover:text-indigo-400 cursor-pointer transition-colors font-medium"
-            >
-              {link.label}
-            </a>
-          ))}
-        </div>
-        <div className="md:hidden">
-          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-gray-300 hover:text-white focus:outline-none">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              {isMenuOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
-              )}
-            </svg>
-          </button>
-        </div>
-      </nav>
-      {isMenuOpen && (
-        <div className="md:hidden absolute w-full bg-gray-800 shadow-lg py-2">
-          {navLinks.map((link) => (
-            <a
-              key={link.to}
-              href={`#${link.to}`}
-              onClick={(e) => onLinkClick(e, link.to)}
-              className="block text-center text-gray-300 hover:text-indigo-400 px-4 py-3 transition-colors"
-            >
-              {link.label}
-            </a>
-          ))}
-        </div>
-      )}
-    </header>
-  )
-}
-
 // 카테고리 정규화 함수
 function normalizeCategory(category: string): string {
   return category.toLowerCase().replace(/[\s-]/g, '');
@@ -112,22 +25,14 @@ function normalizeCategory(category: string): string {
 
 // App 컴포넌트
 export default function App() {
-
-  // === Study 섹션용 상태 ===
+  
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedStudyCategory, setSelectedStudyCategory] = useState('All');
-
   const studyCategories = [
-    'All',
-    'devops',
-    'GOlang',
-    'DataBase',
-    'Network',
-    'Operating System',
-    'Data Structure and Algorithm'
+    'All','devops','GOlang','DataBase','Network','Operating System','Data Structure and Algorithm'
   ];
-
+  
   const fetchPosts = () => {
     setIsLoading(true);
     fetch('/api/posts')
@@ -144,31 +49,30 @@ export default function App() {
         setIsLoading(false);
       });
   };
-
+  
   useEffect(() => {
     fetchPosts();
   }, []);
-
+  
   const filteredPosts = selectedStudyCategory === 'All'
     ? posts
     : posts.filter(post =>
         normalizeCategory(post.category) === normalizeCategory(selectedStudyCategory)
       );
-
-  // === Skills 섹션용 데이터 ===
+  
+  // ❗️ Skills: lucide-react 아이콘으로 수정 (색상 문제 해결)
   const skills = [
-    { name: 'AWS', icon: '☁️' },
-    { name: 'Azure', icon: 'Ⓜ️' },
-    { name: 'Kubernetes', icon: '☸️' },
-    { name: 'Docker', icon: '🐳' },
-    { name: 'Helm', icon: '⛑️' },
-    { name: 'Terraform', icon: '🔩' },
-    { name: 'Ansible', icon: '🅰️' },
-    { name: 'GitHub Actions', icon: '🚀' },
-    { name: 'Jenkins', icon: '🤵' },
+    { name: 'AWS', icon: <Cloud size={32} /> },
+    { name: 'Azure', icon: <Server size={32} /> }, 
+    { name: 'Kubernetes', icon: <Anchor size={32} /> },
+    { name: 'Docker', icon: <Container size={32} /> },
+    { name: 'Helm', icon: <Box size={32} /> },
+    { name: 'Terraform', icon: <GitBranch size={32} /> }, 
+    { name: 'Ansible', icon: <Heart size={32} /> },
+    { name: 'GitHub Actions', icon: <Rocket size={32} /> },
+    { name: 'Jenkins', icon: <Cpu size={32} /> },
   ];
 
-  // === Experience 섹션용 데이터 ===
   const experiences = [
     {
       date: 'Sep 2025 - Present',
@@ -182,70 +86,85 @@ export default function App() {
     },
   ];
 
-  // === Projects 섹션용 상태 및 데이터 ===
   const [selectedProjectCategory, setSelectedProjectCategory] = useState('All');
-
   const projectCategories = [
     'All', 'AWS', 'Terraform', 'Docker', 'Kubernetes', 'Go', 'React'
   ];
-
   const projects = [
     { 
       title: 'Gopra Portfolio (This Site)', 
       description: 'Go + React 기반의 포트폴리오. Docker Compose로 빌드/배포 자동화.',
-      image: '',
-      tags: ['Go', 'React', 'Docker', 'Terraform'] 
+      image: '', tags: ['Go', 'React', 'Docker', 'Terraform'] 
     },
     { 
       title: 'Serverless Todo App', 
       description: 'AWS Lambda, API Gateway, DynamoDB를 사용한 서버리스 투두 앱.',
-      image: '',
-      tags: ['AWS'] 
+      image: '', tags: ['AWS'] 
     },
     { 
       title: 'K8s Cluster Setup', 
       description: 'Terraform과 Ansible을 사용하여 자동화된 K8s 클러스터 구축.',
-      image: '',
-      tags: ['Kubernetes', 'Terraform'] 
+      image: '', tags: ['Kubernetes', 'Terraform'] 
     },
   ];
-
   const filteredProjects = selectedProjectCategory === 'All'
     ? projects
     : projects.filter(p => p.tags.includes(selectedProjectCategory));
 
+  const menuItems = [
+    { label: 'About', ariaLabel: 'Go to About section', link: '#about' },
+    { label: 'Skills', ariaLabel: 'Go to Skills section', link: '#skills' },
+    { label: 'Experience', ariaLabel: 'Go to Experience section', link: '#experience' },
+    { label: 'Projects', ariaLabel: 'Go to Projects section', link: '#projects' },
+    { label: 'Study', ariaLabel: 'Go to Study section', link: '#study' },
+    { label: 'Contact', ariaLabel: 'Go to Contact section', link: '#contact' },
+  ];
+  
+  const GITHUB_URL = "https://github.com/your-github";
 
-  // === 렌더링 (return 문) ===
+  const socialItems = [
+    { label: 'GitHub', link: GITHUB_URL },
+    { label: 'LinkedIn', link: 'https://linkedin.com/in/your-linkedin' },
+  ];
+
   return (
     <>
-      {/* ❗️ 레이어 1: "밤하늘" 배경 ❗️
-          (가장 뒤에 고정된 어두운 배경) */}
-      <div className="fixed inset-0 w-full h-full bg-[#0f172a] 
-                      bg-gradient-to-tr from-[#0f172a] via-[#0f172a] to-[#1e1b4b] z-[-2]" />
-
-      {/* ❗️ 레이어 2: "오로라" ❗️
-          (CSS에 의해 z-index: -1로 고정됨) */}
-      <Aurora
-        // (색상, 세기, 속도는 맘에 들게 조절하세요)
-        colorStops={["#2563EB", "#7C3AED", "#DB2777"]} // 블루/퍼플/핑크
-        amplitude={0.4}
-        speed={0.2}
-        blend={0.5}
+      {/* 레이어 1: "순수 검은색 배경" (z-[-2]) */}
+      <div 
+        className="fixed inset-0 z-[-2] w-full h-full bg-black"
       />
 
-      {/* ❗️ 레이어 3: "콘텐츠" ❗️
-          (z-index: 0, 스크롤 가능) */}
-      <div className="w-full min-h-screen text-gray-300 font-sans relative z-0">
+      {/* 레이어 2: "오로라" (z-[-1]) */}
+      <Aurora
+        colorStops={["#3A29FF", "#FF94B4", "#FF3232"]} 
+        amplitude={1.0}
+        speed={0.2} // ⬅️ 속도 조절한 값
+        blend={0.5}
+      />
+      
+      {/* ❗️ StaggeredMenu: 로고/버튼 위치/디자인 문제 해결 ❗️ */}
+      <StaggeredMenu
+        isFixed={true}
+        position="right"
+        items={menuItems}
+        socialItems={socialItems}
+        displaySocials={true}
+        displayItemNumbering={true}
+        menuButtonColor="#fff"
+        openMenuButtonColor="#1a1a1a"
+        changeMenuColorOnOpen={true}
+        colors={['#ffffff', '#f0f0f0']}
+        accentColor="#3A29FF"
+        githubUrl={GITHUB_URL}
+      />
 
-        <Header />
-
+      {/* 레이어 3: "콘텐츠" (z-0) */}
+      <div className="relative z-0 w-full min-h-screen text-gray-300 font-sans">
+        
         <main className="max-w-5xl mx-auto p-8">
 
-          {/* =================================
-          섹션 1: About (Hero)
-          =================================
-          */}
-          <section id="about" className="min-h-screen flex flex-col items-center justify-center text-center -mt-20">
+          {/* About 섹션 */}
+          <section id="about" className="min-h-screen flex flex-col items-center justify-center text-center pt-40 md:pt-20 -mt-20">
             <h1 className="text-6xl md:text-8xl font-bold text-white tracking-tight">
               Myong G. Kim
             </h1>
@@ -260,22 +179,19 @@ export default function App() {
             <div className="mt-10 flex items-center justify-center gap-4">
               <a
                 href="#contact"
-                onClick={(e) => handleScrollClick(e, 'contact')}
                 className="px-6 py-3 rounded-full bg-indigo-600 text-white font-semibold shadow-lg transition-all 
                            hover:bg-indigo-500 hover:-translate-y-1 hover:shadow-indigo-500/50"
               >
                 Let's Connect
               </a>
               <a
-                href="https://github.com/your-github"
+                href={GITHUB_URL}
                 target="_blank" rel="noopener noreferrer"
                 title="GitHub"
                 className="w-14 h-14 rounded-full bg-gray-700 bg-opacity-20 backdrop-blur-lg flex items-center justify-center 
                            text-white transition-all hover:bg-opacity-40 hover:shadow-xl hover:shadow-indigo-500/50 hover:-translate-y-1"
               >
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                  <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.477 2 12C2 16.418 5.136 20.16 9.25 21.508V18.66C7.545 19.065 6.833 17.81 6.57 17.15C6.38 16.665 5.86 15.69 5.405 15.395C5.04 15.165 4.5 14.65 5.385 14.63C6.275 14.605 6.78 15.42 7.02 15.825C7.99 17.48 9.7 17.02 10.365 16.72C10.455 16.08 10.72 15.615 11.025 15.345C8.82 15.105 6.48 14.24 6.48 10.815C6.48 9.87 6.825 9.09 7.37 8.5C7.28 8.265 6.97 7.32 7.465 6.135C7.465 6.135 8.29 5.88 10.35 7.215C11.14 7.005 11.985 6.9 12.83 6.9C13.675 6.9 14.52 7.005 15.31 7.215C17.37 5.88 18.195 6.135 18.195 6.135C18.69 7.32 18.38 8.265 18.29 8.5C18.835 9.09 19.18 9.87 19.18 10.815C19.18 14.25 16.83 15.105 14.625 15.345C15.015 15.69 15.3 16.32 15.3 17.22V21.508C19.414 20.16 22.55 16.418 22.55 12C22.55 6.477 18.073 2 12.55 2H12Z" />
-                </svg>
+                <Github size={28} />
               </a>
               <a
                 href="https://linkedin.com/in/your-linkedin"
@@ -299,23 +215,21 @@ export default function App() {
             </div>
           </section>
 
-          {/* =================================
-          섹션 2: Skills
-          =================================
-          */}
+          {/* Skills 섹션 */}
           <section id="skills" className="min-h-screen pt-20">
-             <h2 className="text-4xl font-bold text-center text-white">
+            <h2 className="text-4xl font-bold text-center text-white">
               Technical Skills
             </h2>
             <p className="mt-4 text-lg text-center text-gray-400 max-w-2xl mx-auto">
               A curated selection of my expertise in DevOps and Cloud Computing.
             </p>
-            <div className="mt-16 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+            <div className="mt-16 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-5">
               {skills.map((skill) => (
                 <div
                   key={skill.name}
-                  className="bg-gray-700 bg-opacity-20 backdrop-blur-lg rounded-xl p-6 flex flex-col items-center justify-center gap-4 
-                             transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/40 ring-1 ring-white/10"
+                  className="bg-gray-800/50 backdrop-blur-lg rounded-2xl p-6 flex flex-col items-center justify-center gap-4 
+                             transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/40 
+                             ring-1 ring-white/10 text-indigo-300 hover:text-white"
                 >
                   <div className="text-4xl">{skill.icon}</div> 
                   <p className="font-semibold text-white">{skill.name}</p>
@@ -331,12 +245,9 @@ export default function App() {
             </div>
           </section>
 
-          {/* =================================
-          섹션 3: Experience
-          =================================
-          */}
+          {/* Experience 섹션 */}
           <section id="experience" className="min-h-screen pt-20">
-             <h2 className="text-4xl font-bold text-center text-white">
+            <h2 className="text-4xl font-bold text-center text-white">
               Professional Experience & Projects
             </h2>
             <p className="mt-4 text-lg text-center text-gray-400 max-w-2xl mx-auto">
@@ -364,10 +275,7 @@ export default function App() {
             </div>
           </section>
 
-          {/* =================================
-          섹션 4: Projects
-          =================================
-          */}
+          {/* Projects 섹션 */}
           <section id="projects" className="min-h-screen pt-20">
             <div className="text-center mb-16">
               <h2 className="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
@@ -480,10 +388,6 @@ export default function App() {
             )}
           </section>
 
-          {/* =================================
-          섹션 5: Study
-          =================================
-          */}
           <section id="study" className="min-h-screen pt-20">
             <h2 className="text-4xl font-bold text-center text-white">
               My Study & Blogs
@@ -551,10 +455,6 @@ export default function App() {
             </div>
           </section>
 
-          {/* =================================
-          섹션 6: Contact
-          =================================
-          */}
           <section id="contact" className="min-h-screen pt-20">
             <h2 className="text-4xl font-bold text-center text-white">
               Connect With Me
@@ -574,7 +474,7 @@ export default function App() {
                   </div>
                   <div>
                     <p className="text-gray-400">GitHub:</p>
-                    <a href="https://github.com/your-github" target="_blank" rel="noopener noreferrer" className="text-indigo-400 font-medium hover:underline">
+                    <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className="text-indigo-400 font-medium hover:underline">
                       github.com/your-github
                     </a>
                   </div>
