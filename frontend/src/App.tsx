@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-// 1. Post 인터페이스 (변경 없음)
+// 1. Post 인터페이스
 interface Post {
   id: number;
   title: string;
@@ -9,7 +9,7 @@ interface Post {
   linkUrl: string;
 }
 
-// 2. 새롭게 개편된 네비게이션 링크 (영문으로 변경, 'skills'와 'experience' 추가)
+// 2. 네비게이션 링크
 const navLinks = [
   { to: 'about', label: 'About' },
   { to: 'skills', label: 'Skills' },
@@ -18,25 +18,33 @@ const navLinks = [
   { to: 'contact', label: 'Contact' },
 ];
 
-// 3. Header 컴포넌트 (변경 없음 - 기존 로직 그대로 사용)
-// (기존의 부드러운 스크롤과 모바일 메뉴 로직이 그대로 작동합니다)
+// 3. 🚀 [오류 수정]
+// 스크롤 로직을 Header 밖으로 분리하여 재사용 가능한 함수로 만듭니다.
+const handleScrollClick = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+  e.preventDefault();
+  const targetElement = document.getElementById(targetId);
+  if (targetElement) {
+    const headerOffset = 80; // 헤더 높이
+    const elementPosition = targetElement.getBoundingClientRect().top;
+    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+    window.scrollTo({
+      top: offsetPosition,
+      behavior: "smooth"
+    });
+  }
+};
+
+
+// 4. Header 컴포넌트
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const handleScrollClick = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
-    e.preventDefault();
-    const targetElement = document.getElementById(targetId);
-    if (targetElement) {
-      const headerOffset = 80; // 헤더 높이
-      const elementPosition = targetElement.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: "smooth"
-      });
-    }
-    setIsMenuOpen(false);
+  // 🚀 [오류 수정] Header 내부에서는 이 함수를 한 번 더 감싸서
+  // 모바일 메뉴를 닫는 로직(setIsMenuOpen(false))을 추가합니다.
+  const onLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+    handleScrollClick(e, targetId); // 공용 스크롤 함수 호출
+    setIsMenuOpen(false); // 모바일 메뉴 닫기
   };
 
   return (
@@ -44,10 +52,10 @@ function Header() {
       <nav className="max-w-5xl mx-auto h-full flex items-center justify-between px-8">
         <a
           href="#about"
-          onClick={(e) => handleScrollClick(e, 'about')}
+          onClick={(e) => onLinkClick(e, 'about')} // ⬅️ 수정됨
           className="text-2xl font-bold text-indigo-400 cursor-pointer hover:text-indigo-300"
         >
-          myong12.site {/* 기존 로고명 유지 */}
+          myong12.site
         </a>
 
         {/* 데스크탑 메뉴 */}
@@ -56,7 +64,7 @@ function Header() {
             <a
               key={link.to}
               href={`#${link.to}`}
-              onClick={(e) => handleScrollClick(e, link.to)}
+              onClick={(e) => onLinkClick(e, link.to)} // ⬅️ 수정됨
               className="text-gray-300 hover:text-indigo-400 cursor-pointer transition-colors font-medium"
             >
               {link.label}
@@ -85,7 +93,7 @@ function Header() {
             <a
               key={link.to}
               href={`#${link.to}`}
-              onClick={(e) => handleScrollClick(e, link.to)}
+              onClick={(e) => onLinkClick(e, link.to)} // ⬅️ 수정됨
               className="block text-center text-gray-300 hover:text-indigo-400 px-4 py-3 transition-colors"
             >
               {link.label}
@@ -97,7 +105,7 @@ function Header() {
   )
 }
 
-// 4. 스터디 카테고리 (변경 없음)
+// 5. 스터디 카테고리
 function normalizeCategory(category: string): string {
   return category.toLowerCase().replace(/[\s-]/g, '');
 }
@@ -111,7 +119,7 @@ const categories = [
   'Data Structure and Algorithm'
 ];
 
-// 5. App 컴포넌트 (디자인 대대적 개편)
+// 6. App 컴포넌트
 export default function App() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -144,7 +152,7 @@ export default function App() {
         normalizeCategory(post.category) === normalizeCategory(selectedCategory)
       );
   
-  // 6. 하드코딩된 스킬 데이터 (image_49ffd7.png 참고)
+  // 하드코딩된 스킬 데이터
   const skills = [
     { name: 'AWS', icon: '☁️' },
     { name: 'Azure', icon: 'Ⓜ️' },
@@ -160,7 +168,7 @@ export default function App() {
     { name: 'Prometheus', icon: '📊' },
   ];
 
-  // 7. 하드코딩된 경험 데이터 (image_49ffd9.png 참고)
+  // 하드코딩된 경험 데이터
   const experiences = [
     {
       date: 'Sep 2025 - Present',
@@ -175,27 +183,13 @@ export default function App() {
         'Configuring monitoring & observability using Prometheus and Grafana'
       ]
     },
-    // { // 템플릿: 나중에 다른 경험을 여기에 추가할 수 있습니다.
-    //   date: 'Apr 2024 - Aug 2025',
-    //   title: 'Another Role',
-    //   company: 'Another Company • Location',
-    //   tasks: [
-    //     'Task A',
-    //     'Task B',
-    //   ]
-    // },
   ];
 
   return (
-    // 배경색을 레퍼런스와 유사한 어두운 네이비로 변경
     <div className="w-full min-h-screen bg-[#0f172a] text-gray-300 font-sans">
       
       <Header />
 
-      {/* =================================
-      메인 컨텐츠 (max-w-5xl)
-      =================================
-      */}
       <main className="max-w-5xl mx-auto p-8">
 
         {/* =================================
@@ -217,7 +211,7 @@ export default function App() {
           <div className="mt-10 flex items-center justify-center gap-4">
             <a
               href="#contact"
-              onClick={(e) => new Header().handleScrollClick(e, 'contact')} // 임시 Header 인스턴스 사용
+              onClick={(e) => handleScrollClick(e, 'contact')} // 🚀 [오류 수정] 'new Header()...' 대신 공용 함수를 직접 호출합니다.
               className="px-6 py-3 rounded-full bg-indigo-600 text-white font-semibold shadow-lg transition-all hover:bg-indigo-500 hover:-translate-y-1"
             >
               Let's Connect
@@ -227,7 +221,6 @@ export default function App() {
               target="_blank" rel="noopener noreferrer"
               className="w-14 h-14 rounded-full bg-gray-700 bg-opacity-20 backdrop-blur-lg flex items-center justify-center text-2xl text-white transition-all hover:bg-opacity-40 hover:shadow-xl"
             >
-              {/* GitHub 아이콘 (SVG 권장) */}
               <span title="GitHub">GH</span> 
             </a>
             <a
@@ -235,12 +228,10 @@ export default function App() {
               target="_blank" rel="noopener noreferrer"
               className="w-14 h-14 rounded-full bg-gray-700 bg-opacity-20 backdrop-blur-lg flex items-center justify-center text-2xl text-white transition-all hover:bg-opacity-40 hover:shadow-xl"
             >
-              {/* LinkedIn 아이콘 (SVG 권장) */}
               <span title="LinkedIn">IN</span>
             </a>
           </div>
           <div className="absolute bottom-10 text-gray-500 animate-bounce">
-            {/* Scroll to explore (image_49ffd5.png) */}
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 mx-auto">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 9l6-6m0 0l6 6m-6-6v12a6 6 0 01-12 0v-3" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 13.5a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
@@ -268,7 +259,6 @@ export default function App() {
                 key={skill.name}
                 className="bg-gray-700 bg-opacity-20 backdrop-blur-lg rounded-xl p-6 flex flex-col items-center justify-center gap-4 transition-all hover:-translate-y-1 hover:shadow-indigo-500/30"
               >
-                {/* TODO: 아이콘을 실제 SVG나 이미지로 교체하세요. */}
                 <div className="text-4xl">{skill.icon}</div> 
                 <p className="font-semibold text-white">{skill.name}</p>
               </div>
@@ -294,15 +284,11 @@ export default function App() {
           </p>
           
           <div className="mt-16 max-w-3xl mx-auto">
-            {/* 타임라인 컨테이너 */}
             <div className="relative border-l-2 border-gray-700 ml-6 space-y-16 py-10">
               
               {experiences.map((exp, index) => (
                 <div key={index} className="relative">
-                  {/* 타임라인 점 */}
                   <div className="absolute -left-3.5 mt-2 w-7 h-7 bg-indigo-600 rounded-full border-4 border-gray-800" />
-                  
-                  {/* 타임라인 컨텐츠 */}
                   <div className="ml-10">
                     <p className="text-sm font-semibold text-indigo-400">{exp.date}</p>
                     <h3 className="mt-1 text-2xl font-bold text-white">{exp.title}</h3>
@@ -332,7 +318,6 @@ export default function App() {
             Insights, tutorials, and thoughts on DevOps, cloud technologies, and software development.
           </p>
 
-          {/* 글래스모피즘 필터 카드 (image_49fff1.png) */}
           <div className="my-12 rounded-2xl bg-gray-700 bg-opacity-20 p-6 md:p-8 backdrop-blur-lg shadow-xl ring-1 ring-gray-500/20">
             <h3 className="text-sm font-semibold text-gray-400 mb-4">
               Filter by tags
@@ -359,7 +344,6 @@ export default function App() {
             '{selectedCategory}' 카테고리 ({filteredPosts.length}개 게시글)
           </p>
 
-          {/* 포스트 목록 (카드형 그리드) */}
           <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
             {isLoading ? (
               <p className="text-gray-500 col-span-full">포스트를 불러오는 중...</p>
@@ -372,9 +356,6 @@ export default function App() {
                   rel="noopener noreferrer"
                   className="block bg-gray-800 rounded-lg shadow-xl transition-all hover:-translate-y-1 hover:shadow-indigo-500/30 overflow-hidden"
                 >
-                  {/* TODO: 나중에 포스트별 썸네일 이미지를 추가하면 좋습니다. */}
-                  {/* <div className="h-40 bg-gray-700 w-full" /> */}
-                  
                   <div className="p-6">
                     <span className="text-xs px-2 py-1 rounded-full bg-indigo-900 text-indigo-300 font-medium">
                       {post.category}
@@ -412,7 +393,6 @@ export default function App() {
           <div className="mt-16 max-w-4xl mx-auto bg-gray-700 bg-opacity-20 backdrop-blur-lg rounded-xl shadow-2xl p-8 md:p-12">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
               
-              {/* 왼쪽: 연락처 정보 */}
               <div className="space-y-6">
                 <h3 className="text-2xl font-bold text-white">Contact Info</h3>
                 <div>
@@ -429,7 +409,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* 오른쪽: 문의 폼 */}
               <form className="md:col-span-2 space-y-6">
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-300">Name</label>
