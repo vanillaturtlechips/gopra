@@ -9,12 +9,12 @@ interface Post {
   linkUrl: string;
 }
 
-// 2. ⬇️ [네비게이션 수정] "Projects" 추가
+// 2. 네비게이션 링크 ("Projects" 포함)
 const navLinks = [
   { to: 'about', label: 'About' },
   { to: 'skills', label: 'Skills' },
   { to: 'experience', label: 'Experience' },
-  { to: 'projects', label: 'Projects' }, // ⬅️ "Projects" 추가
+  { to: 'projects', label: 'Projects' },
   { to: 'study', label: 'Study' },
   { to: 'contact', label: 'Contact' },
 ];
@@ -36,7 +36,7 @@ const handleScrollClick = (e: React.MouseEvent<HTMLAnchorElement>, targetId: str
 };
 
 
-// 4. Header 컴포넌트
+// 4. Header 컴포넌트 (v3와 동일 - 입체감 있는 디자인)
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -46,8 +46,6 @@ function Header() {
   };
 
   return (
-    // ⬇️ [헤더 디자인 수정]
-    // 밋밋한 bg-gray-900 대신, 투명도와 하단 테두리를 추가하여 입체감 부여
     <header className="sticky top-0 w-full h-20 bg-gray-800/50 backdrop-blur-lg shadow-lg z-50
                    border-b border-gray-700/50"> 
       <nav className="max-w-5xl mx-auto h-full flex items-center justify-between px-8">
@@ -58,10 +56,8 @@ function Header() {
         >
           myong12.site
         </a>
-
-        {/* 데스크탑 메뉴 */}
         <div className="hidden md:flex items-center gap-8">
-          {navLinks.map((link) => ( // navLinks가 새 버전으로 업데이트됨
+          {navLinks.map((link) => (
             <a
               key={link.to}
               href={`#${link.to}`}
@@ -72,8 +68,6 @@ function Header() {
             </a>
           ))}
         </div>
-        
-        {/* 모바일 메뉴 버튼 */}
         <div className="md:hidden">
           <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-gray-300 hover:text-white focus:outline-none">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -86,8 +80,6 @@ function Header() {
           </button>
         </div>
       </nav>
-      
-      {/* 모바일 메뉴 패널 */}
       {isMenuOpen && (
         <div className="md:hidden absolute w-full bg-gray-800 shadow-lg py-2">
           {navLinks.map((link) => (
@@ -106,27 +98,30 @@ function Header() {
   )
 }
 
-// 5. 스터디 카테고리
+// 5. 카테고리 정규화 함수 (공용)
 function normalizeCategory(category: string): string {
   return category.toLowerCase().replace(/[\s-]/g, '');
 }
-const studyCategories = [ // ⬅️ 변수명 변경 (projectCategories와 구분)
-  'All',
-  'devops',
-  'GOlang',
-  'DataBase',
-  'Network',
-  'Operating System',
-  'Data Structure and Algorithm'
-];
 
-// 6. App 컴포넌트
+// 6. ⬇️ [오류 수정]
+// App 컴포넌트가 `export default`로 정상적으로 감싸져 있는지 확인합니다.
 export default function App() {
+  
+  // === Study 섹션용 상태 ===
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedStudyCategory, setSelectedStudyCategory] = useState('All'); // ⬅️ 변수명 변경
+  const [selectedStudyCategory, setSelectedStudyCategory] = useState('All');
+  
+  const studyCategories = [
+    'All',
+    'devops',
+    'GOlang',
+    'DataBase',
+    'Network',
+    'Operating System',
+    'Data Structure and Algorithm'
+  ];
 
-  // ... (fetchPosts, useEffect 등은 변경 없음) ...
   const fetchPosts = () => {
     setIsLoading(true);
     fetch('/api/posts')
@@ -154,7 +149,7 @@ export default function App() {
         normalizeCategory(post.category) === normalizeCategory(selectedStudyCategory)
       );
   
-  // 하드코딩된 스킬 데이터
+  // === Skills 섹션용 데이터 ===
   const skills = [
     { name: 'AWS', icon: '☁️' },
     { name: 'Azure', icon: 'Ⓜ️' },
@@ -165,12 +160,9 @@ export default function App() {
     { name: 'Ansible', icon: '🅰️' },
     { name: 'GitHub Actions', icon: '🚀' },
     { name: 'Jenkins', icon: '🤵' },
-    { name: 'GitLab CI', icon: '🦊' },
-    { name: 'ArgoCD', icon: '🔄' },
-    { name: 'Prometheus', icon: '📊' },
   ];
 
-  // 하드코딩된 경험 데이터 (타임라인용)
+  // === Experience 섹션용 데이터 ===
   const experiences = [
     {
       date: 'Sep 2025 - Present',
@@ -184,17 +176,18 @@ export default function App() {
     },
   ];
 
-  // ⬇️ [신규] 프로젝트 데이터 (하드코딩)
+  // === ⬇️ [오류 수정] Projects 섹션에 필요한 변수들 정의 ===
+  const [selectedProjectCategory, setSelectedProjectCategory] = useState('All');
+
   const projectCategories = [
     'All', 'AWS', 'Terraform', 'Docker', 'Kubernetes', 'Go', 'React'
   ];
-  const [selectedProjectCategory, setSelectedProjectCategory] = useState('All');
 
   const projects = [
     { 
       title: 'Gopra Portfolio (This Site)', 
       description: 'Go + React 기반의 포트폴리오. Docker Compose로 빌드/배포 자동화.',
-      image: '', // 썸네일 URL (비워두면 회색박스)
+      image: '', // 썸네일 URL
       tags: ['Go', 'React', 'Docker', 'Terraform'] 
     },
     { 
@@ -214,8 +207,10 @@ export default function App() {
   const filteredProjects = selectedProjectCategory === 'All'
     ? projects
     : projects.filter(p => p.tags.includes(selectedProjectCategory));
+  // =========================================================
 
 
+  // === 7. 렌더링 (return 문) ===
   return (
     <div className="w-full min-h-screen bg-[#0f172a] text-gray-300 font-sans
                     bg-gradient-to-tr from-[#0f172a] via-[#0f172a] to-[#1e1b4b]">
@@ -229,7 +224,6 @@ export default function App() {
         =================================
         */}
         <section id="about" className="min-h-screen flex flex-col items-center justify-center text-center -mt-20">
-          {/* ... (Hero 섹션 코드는 이전과 동일) ... */}
           <h1 className="text-6xl md:text-8xl font-bold text-white tracking-tight">
             Myong G. Kim
           </h1>
@@ -287,7 +281,6 @@ export default function App() {
         =================================
         */}
         <section id="skills" className="min-h-screen pt-20">
-           {/* ... (Skills 섹션 코드는 이전과 동일) ... */}
            <h2 className="text-4xl font-bold text-center text-white">
             Technical Skills
           </h2>
@@ -299,7 +292,7 @@ export default function App() {
               <div
                 key={skill.name}
                 className="bg-gray-700 bg-opacity-20 backdrop-blur-lg rounded-xl p-6 flex flex-col items-center justify-center gap-4 
-                           transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/40 ring-1 ring-white/10" // ⬅️ 테두리 추가
+                           transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/40 ring-1 ring-white/10"
               >
                 <div className="text-4xl">{skill.icon}</div> 
                 <p className="font-semibold text-white">{skill.name}</p>
@@ -320,7 +313,6 @@ export default function App() {
         =================================
         */}
         <section id="experience" className="min-h-screen pt-20">
-           {/* ... (Experience 섹션 코드는 이전과 동일) ... */}
            <h2 className="text-4xl font-bold text-center text-white">
             Professional Experience & Projects
           </h2>
@@ -350,31 +342,39 @@ export default function App() {
         </section>
 
         {/* =================================
-        ⬇️ [신규] 섹션 4: Projects (image_4ae910.png)
+        ⬇️ [통합 완료] 섹션 4: Projects - 개선된 새 디자인
         =================================
         */}
         <section id="projects" className="min-h-screen pt-20">
-          <h2 className="text-4xl font-bold text-center text-white">
-            My Projects
-          </h2>
-          <p className="mt-4 text-lg text-center text-gray-400 max-w-2xl mx-auto">
-            A collection of innovative projects showcasing technical expertise & creativity.
-          </p>
+          {/* 헤더 섹션 - 그라디언트 효과 추가 */}
+          <div className="text-center mb-16">
+            <h2 className="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
+              Featured Projects
+            </h2>
+            <p className="mt-6 text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
+              Innovative solutions combining cloud infrastructure, automation, and modern development practices
+            </p>
+          </div>
 
-          {/* ⬇️ [디자인 수정] 필터 카드 스타일 수정 (Study와 동일) */}
-          <div className="my-12 rounded-2xl bg-gray-600/20 p-6 md:p-8 backdrop-blur-xl shadow-xl ring-1 ring-white/10">
-            <h3 className="text-sm font-semibold text-gray-400 mb-4">
-              Filter by tags
-            </h3>
+          {/* 필터 섹션 - 개선된 디자인 */}
+          <div className="my-16 rounded-3xl bg-gradient-to-br from-gray-800/40 to-gray-900/40 p-8 backdrop-blur-xl shadow-2xl ring-1 ring-white/10 border border-gray-700/50">
+            <div className="flex items-center gap-3 mb-6">
+              <svg className="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+              </svg>
+              <h3 className="text-lg font-bold text-white">
+                Filter by Technology
+              </h3>
+            </div>
             <div className="flex flex-wrap gap-3">
               {projectCategories.map((category) => (
                 <button
                   key={category}
                   onClick={() => setSelectedProjectCategory(category)}
-                  className={`px-4 py-2 rounded-full font-semibold text-sm transition-all
+                  className={`px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-300 transform
                     ${selectedProjectCategory === category
-                      ? 'bg-indigo-600 text-white shadow-lg'
-                      : 'bg-gray-700 bg-opacity-50 text-gray-300 hover:bg-gray-600 hover:shadow-lg hover:shadow-indigo-500/30'
+                      ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-xl shadow-indigo-500/50 scale-105'
+                      : 'bg-gray-700/60 text-gray-300 hover:bg-gray-600/80 hover:shadow-lg hover:scale-105 hover:text-white'
                     }
                   `}
                 >
@@ -384,40 +384,105 @@ export default function App() {
             </div>
           </div>
 
-          {/* ⬇️ 3열 카드 그리드 (image_4ae910.png 참고) */}
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-8">
-            {filteredProjects.map((project) => (
+          {/* 프로젝트 카드 그리드 - 대폭 개선 */}
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredProjects.map((project, index) => (
               <a
                 key={project.title}
-                href="#" // TODO: 프로젝트 링크 추가
-                className="block bg-gray-700/50 rounded-lg shadow-xl transition-all 
-                             hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/40 
-                             overflow-hidden ring-1 ring-white/10" // ⬅️ 카드 스타일 수정
+                href="#"
+                className="group relative block rounded-2xl overflow-hidden transition-all duration-500 transform hover:-translate-y-2"
+                style={{ animationDelay: `${index * 100}ms` }} // 이 style 속성은 애니메이션용이므로 그대로 둬도 좋습니다.
               >
-                {/* 썸네일 (이미지 없으면 회색 박스) */}
-                <div className="h-40 bg-gray-600/50 w-full flex items-center justify-center text-gray-500">
-                  {project.image ? <img src={project.image} alt={project.title} className="w-full h-full object-cover" /> : '(Thumbnail)'}
-                </div>
+                {/* 배경 그라디언트 효과 */}
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/20 via-purple-600/20 to-pink-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 
-                <div className="p-6">
-                  <h3 className="text-xl font-semibold text-white">{project.title}</h3>
-                  <p className="mt-2 text-gray-400 text-sm">{project.description}</p>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {project.tags.map(tag => (
-                      <span key={tag} className="text-xs px-2 py-1 rounded-full bg-indigo-900 text-indigo-300 font-medium">
-                        {tag}
-                      </span>
-                    ))}
+                {/* 카드 본체 */}
+                <div className="relative bg-gray-800/50 backdrop-blur-lg ring-1 ring-white/10 border border-gray-700/50 rounded-2xl overflow-hidden shadow-xl group-hover:shadow-2xl group-hover:shadow-indigo-500/30 transition-all duration-500">
+                  
+                  {/* 썸네일 영역 - 그라디언트 배경 */}
+                  <div className="relative h-48 bg-gradient-to-br from-indigo-900/50 via-purple-900/50 to-pink-900/50 flex items-center justify-center overflow-hidden">
+                    {/* 애니메이션 배경 효과 */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent transform -skew-x-12 group-hover:translate-x-full transition-transform duration-1000" />
+                    
+                    {project.image ? (
+                      <img 
+                        src={project.image} 
+                        alt={project.title} 
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                      />
+                    ) : (
+                      <div className="text-center">
+                        <svg className="w-20 h-20 mx-auto text-indigo-400/50 mb-3 group-hover:scale-110 group-hover:text-indigo-400 transition-all duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                        </svg>
+                        <span className="text-sm text-gray-500 group-hover:text-gray-400 transition-colors">Project Preview</span>
+                      </div>
+                    )}
+                    
+                    {/* 오버레이 효과 */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent opacity-60" />
                   </div>
+                  
+                  {/* 콘텐츠 영역 */}
+                  <div className="p-6 space-y-4">
+                    {/* 제목 */}
+                    <h3 className="text-xl font-bold text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-indigo-400 group-hover:to-purple-400 transition-all duration-300">
+                      {project.title}
+                    </h3>
+                    
+                    {/* 설명 */}
+                    <p className="text-gray-400 text-sm leading-relaxed line-clamp-3 group-hover:text-gray-300 transition-colors">
+                      {project.description}
+                    </p>
+                    
+                    {/* 태그 */}
+                    <div className="flex flex-wrap gap-2 pt-2">
+                      {project.tags.map(tag => (
+                        <span 
+                          key={tag} 
+                          className="inline-flex items-center px-3 py-1 rounded-lg bg-gradient-to-r from-indigo-900/50 to-purple-900/50 text-indigo-300 font-medium text-xs ring-1 ring-indigo-500/30 group-hover:ring-indigo-400/50 transition-all"
+                        >
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* 하단 액션 버튼 */}
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-700/50">
+                      <span className="text-xs text-gray-500 group-hover:text-indigo-400 transition-colors flex items-center gap-2">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        View Details
+                      </span>
+                      <svg className="w-5 h-5 text-gray-600 group-hover:text-indigo-400 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  {/* 호버 시 빛나는 테두리 효과 */}
+                  <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/0 group-hover:ring-white/20 transition-all duration-500 pointer-events-none" />
                 </div>
               </a>
             ))}
           </div>
+
+          {/* 빈 상태 메시지 */}
+          {filteredProjects.length === 0 && (
+            <div className="text-center py-20">
+              <svg className="w-24 h-24 mx-auto text-gray-600 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+              </svg>
+              <p className="text-xl text-gray-500">No projects found for this category</p>
+              <p className="text-sm text-gray-600 mt-2">Try selecting a different filter</p>
+            </div>
+          )}
         </section>
 
-
         {/* =================================
-        섹션 5: Study (기존 섹션 4)
+        섹션 5: Study (v3 디자인 유지)
         =================================
         */}
         <section id="study" className="min-h-screen pt-20">
@@ -427,8 +492,6 @@ export default function App() {
           <p className="mt-4 text-lg text-center text-gray-400 max-w-2xl mx-auto">
             Insights, tutorials, and thoughts on DevOps, cloud technologies, and software development.
           </p>
-
-          {/* ⬇️ [디자인 수정] 필터 카드 스타일 (배경 어두워지는 문제 해결) */}
           <div className="my-12 rounded-2xl bg-gray-600/20 p-6 md:p-8 backdrop-blur-xl shadow-xl ring-1 ring-white/10">
             <h3 className="text-sm font-semibold text-gray-400 mb-4">
               Filter by tags
@@ -450,12 +513,9 @@ export default function App() {
               ))}
             </div>
           </div>
-          
           <p className="text-sm text-gray-500 mb-6">
             '{selectedStudyCategory}' 카테고리 ({filteredPosts.length}개 게시글)
           </p>
-
-          {/* ⬇️ [디자인 수정] 블로그 카드 스타일 (배경 어두워지는 문제 해결) */}
           <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
             {isLoading ? (
               <p className="text-gray-500 col-span-full">포스트를 불러오는 중...</p>
@@ -468,7 +528,7 @@ export default function App() {
                   rel="noopener noreferrer"
                   className="block bg-gray-700/50 rounded-lg shadow-xl transition-all 
                              hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/40 
-                             overflow-hidden ring-1 ring-white/10" // ⬅️ 카드 스타일 수정
+                             overflow-hidden ring-1 ring-white/10"
                 >
                   <div className="p-6">
                     <span className="text-xs px-2 py-1 rounded-full bg-indigo-900 text-indigo-300 font-medium">
@@ -493,11 +553,10 @@ export default function App() {
         </section>
 
         {/* =================================
-        섹션 6: Contact (기존 섹션 5)
+        섹션 6: Contact (v3 디자인 유지)
         =================================
         */}
         <section id="contact" className="min-h-screen pt-20">
-           {/* ⬇️ [디자인 수정] 컨택트 카드 스타일 (배경 어두워지는 문제 해결) */}
           <h2 className="text-4xl font-bold text-center text-white">
             Connect With Me
           </h2>
@@ -505,7 +564,6 @@ export default function App() {
             Have a project in mind or a question? Reach out and let's turn your ideas into reality.
           </p>
           <div className="mt-16 max-w-4xl mx-auto bg-gray-700/20 backdrop-blur-xl rounded-xl shadow-2xl p-8 md:p-12 ring-1 ring-white/10">
-            {/* ... (Contact 폼 내용은 이전과 동일) ... */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
               <div className="space-y-6">
                 <h3 className="text-2xl font-bold text-white">Contact Info</h3>
