@@ -134,7 +134,7 @@ async function syncPortfolio() {
   console.log('✅ Environment variables validated\n');
 
   // DB 연결
-  const sql = postgres(POSTGRES_URL, { ssl: 'require' });
+  const sql = postgres(POSTGRES_URL, { ssl: false });
 
   try {
     const [localFiles, dbPosts] = await Promise.all([
