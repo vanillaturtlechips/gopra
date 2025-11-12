@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   
   // Docker에서 실행 시 env.VITE_API_URL을 사용, 아니면 기존 localhost를 사용
-  const proxyTarget = env.VITE_API_URL || 'http://localhost:8080';
+  const proxyTarget = env.VITE_API_URL || 'http://159.223.38.10:8080';
   
   console.log(`[Vite Config] Proxy Target: ${proxyTarget}`);
 

@@ -1,17 +1,16 @@
 /* frontend/src/components/Aurora.css */
 
 .aurora-container {
-  /* 전체 화면을 덮도록 설정 */
+  /* 1. 화면 전체에 고정 */
   width: 100vw;
   height: 100vh;
-  
-  /* 화면에 고정 */
   position: fixed;
   top: 0;
   left: 0;
 
-  /* ❗️ 모든 콘텐츠의 맨 뒤로 보냅니다 (배경) */
+  /* 2. '밤하늘' 보다는 위, '콘텐츠' 보다는 아래 */
   z-index: -1; 
-  
-  opacity: 0.2; 
+
+  /* 3. '밤하늘'과 섞이도록 투명도 (0.3 ~ 0.5 추천) */
+  opacity: 0.4;
 }
