@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "tailwind:init": "npx tailwindcss init -p"
+    "tailwind:init": "npx tailwindcss init -p",
+    "sync": "node ./scripts/sync.mjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.16",
