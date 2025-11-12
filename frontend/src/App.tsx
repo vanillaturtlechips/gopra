@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import Aurora from './components/Aurora';
 
 // 1. Post 인터페이스
 interface Post {
@@ -212,9 +213,15 @@ export default function App() {
 
   // === 7. 렌더링 (return 문) ===
   return (
-    <div className="w-full min-h-screen bg-[#0f172a] text-gray-300 font-sans
-                    bg-gradient-to-tr from-[#0f172a] via-[#0f172a] to-[#1e1b4b]">
-      
+	  <div className="w-full min-h-screen text-gray-300 font-sans">
+
+      <Aurora
+        colorStops={["#3A29FF", "#FF94B4", "#FF3232"]}
+        blend={0.5}
+        amplitude={1.0}
+        speed={0.5}
+      />
+
       <Header />
 
       <main className="max-w-5xl mx-auto p-8">
