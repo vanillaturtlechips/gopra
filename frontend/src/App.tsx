@@ -18,8 +18,7 @@ const navLinks = [
   { to: 'contact', label: 'Contact' },
 ];
 
-// 3. 🚀 [오류 수정]
-// 스크롤 로직을 Header 밖으로 분리하여 재사용 가능한 함수로 만듭니다.
+// 3. 스크롤 유틸리티 함수
 const handleScrollClick = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
   e.preventDefault();
   const targetElement = document.getElementById(targetId);
@@ -40,11 +39,9 @@ const handleScrollClick = (e: React.MouseEvent<HTMLAnchorElement>, targetId: str
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // 🚀 [오류 수정] Header 내부에서는 이 함수를 한 번 더 감싸서
-  // 모바일 메뉴를 닫는 로직(setIsMenuOpen(false))을 추가합니다.
   const onLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
-    handleScrollClick(e, targetId); // 공용 스크롤 함수 호출
-    setIsMenuOpen(false); // 모바일 메뉴 닫기
+    handleScrollClick(e, targetId);
+    setIsMenuOpen(false); 
   };
 
   return (
@@ -52,7 +49,7 @@ function Header() {
       <nav className="max-w-5xl mx-auto h-full flex items-center justify-between px-8">
         <a
           href="#about"
-          onClick={(e) => onLinkClick(e, 'about')} // ⬅️ 수정됨
+          onClick={(e) => onLinkClick(e, 'about')} 
           className="text-2xl font-bold text-indigo-400 cursor-pointer hover:text-indigo-300"
         >
           myong12.site
@@ -64,7 +61,7 @@ function Header() {
             <a
               key={link.to}
               href={`#${link.to}`}
-              onClick={(e) => onLinkClick(e, link.to)} // ⬅️ 수정됨
+              onClick={(e) => onLinkClick(e, link.to)}
               className="text-gray-300 hover:text-indigo-400 cursor-pointer transition-colors font-medium"
             >
               {link.label}
@@ -93,7 +90,7 @@ function Header() {
             <a
               key={link.to}
               href={`#${link.to}`}
-              onClick={(e) => onLinkClick(e, link.to)} // ⬅️ 수정됨
+              onClick={(e) => onLinkClick(e, link.to)}
               className="block text-center text-gray-300 hover:text-indigo-400 px-4 py-3 transition-colors"
             >
               {link.label}
@@ -186,7 +183,10 @@ export default function App() {
   ];
 
   return (
-    <div className="w-full min-h-screen bg-[#0f172a] text-gray-300 font-sans">
+    // ⬇️ [디자인 수정 1]
+    // 배경에 미묘한 그라데이션을 추가하여 깊이감을 줍니다.
+    <div className="w-full min-h-screen bg-[#0f172a] text-gray-300 font-sans
+                    bg-gradient-to-tr from-[#0f172a] via-[#0f172a] to-[#1e1b4b]">
       
       <Header />
 
@@ -211,31 +211,44 @@ export default function App() {
           <div className="mt-10 flex items-center justify-center gap-4">
             <a
               href="#contact"
-              onClick={(e) => handleScrollClick(e, 'contact')} // 🚀 [오류 수정] 'new Header()...' 대신 공용 함수를 직접 호출합니다.
-              className="px-6 py-3 rounded-full bg-indigo-600 text-white font-semibold shadow-lg transition-all hover:bg-indigo-500 hover:-translate-y-1"
+              onClick={(e) => handleScrollClick(e, 'contact')}
+              className="px-6 py-3 rounded-full bg-indigo-600 text-white font-semibold shadow-lg transition-all 
+                         hover:bg-indigo-500 hover:-translate-y-1 hover:shadow-indigo-500/50" // ⬅️ Glow 효과
             >
               Let's Connect
             </a>
+
+            {/* ⬇️ [디자인 수정 2] "GH" 텍스트 대신 실제 SVG 아이콘 사용 */}
             <a
               href="https://github.com/your-github" // TODO: 본인 GitHub 주소로 변경
               target="_blank" rel="noopener noreferrer"
-              className="w-14 h-14 rounded-full bg-gray-700 bg-opacity-20 backdrop-blur-lg flex items-center justify-center text-2xl text-white transition-all hover:bg-opacity-40 hover:shadow-xl"
+              title="GitHub"
+              className="w-14 h-14 rounded-full bg-gray-700 bg-opacity-20 backdrop-blur-lg flex items-center justify-center 
+                         text-white transition-all hover:bg-opacity-40 hover:shadow-xl hover:shadow-indigo-500/50 hover:-translate-y-1"
             >
-              <span title="GitHub">GH</span> 
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.477 2 12C2 16.418 5.136 20.16 9.25 21.508V18.66C7.545 19.065 6.833 17.81 6.57 17.15C6.38 16.665 5.86 15.69 5.405 15.395C5.04 15.165 4.5 14.65 5.385 14.63C6.275 14.605 6.78 15.42 7.02 15.825C7.99 17.48 9.7 17.02 10.365 16.72C10.455 16.08 10.72 15.615 11.025 15.345C8.82 15.105 6.48 14.24 6.48 10.815C6.48 9.87 6.825 9.09 7.37 8.5C7.28 8.265 6.97 7.32 7.465 6.135C7.465 6.135 8.29 5.88 10.35 7.215C11.14 7.005 11.985 6.9 12.83 6.9C13.675 6.9 14.52 7.005 15.31 7.215C17.37 5.88 18.195 6.135 18.195 6.135C18.69 7.32 18.38 8.265 18.29 8.5C18.835 9.09 19.18 9.87 19.18 10.815C19.18 14.25 16.83 15.105 14.625 15.345C15.015 15.69 15.3 16.32 15.3 17.22V21.508C19.414 20.16 22.55 16.418 22.55 12C22.55 6.477 18.073 2 12.55 2H12Z" />
+              </svg>
             </a>
+            
+            {/* ⬇️ [디자인 수정 2] "IN" 텍스트 대신 실제 SVG 아이콘 사용 */}
             <a
               href="https://linkedin.com/in/your-linkedin" // TODO: 본인 LinkedIn 주소로 변경
               target="_blank" rel="noopener noreferrer"
-              className="w-14 h-14 rounded-full bg-gray-700 bg-opacity-20 backdrop-blur-lg flex items-center justify-center text-2xl text-white transition-all hover:bg-opacity-40 hover:shadow-xl"
+              title="LinkedIn"
+              className="w-14 h-14 rounded-full bg-gray-700 bg-opacity-20 backdrop-blur-lg flex items-center justify-center 
+                         text-white transition-all hover:bg-opacity-40 hover:shadow-xl hover:shadow-indigo-500/50 hover:-translate-y-1"
             >
-              <span title="LinkedIn">IN</span>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 0H5C2.239 0 0 2.239 0 5V19C0 21.761 2.239 24 5 24H19C21.761 24 24 21.761 24 19V5C24 2.239 21.761 0 19 0ZM8 19H5V8H8V19ZM6.5 6.732C5.534 6.732 4.75 5.942 4.75 4.968C4.75 3.994 5.534 3.204 6.5 3.204C7.466 3.204 8.25 3.994 8.25 4.968C8.25 5.942 7.467 6.732 6.5 6.732ZM20 19H17V13.396C17 10.028 13 10.283 13 13.396V19H10V8H13V9.765C13.971 8.169 17 7.917 17 11.036V19Z" />
+              </svg>
             </a>
           </div>
+
           <div className="absolute bottom-10 text-gray-500 animate-bounce">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 mx-auto">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 9l6-6m0 0l6 6m-6-6v12a6 6 0 01-12 0v-3" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 13.5a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="m9 12.75 6 6m-6-6 6-6" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6.75m0 0l-3-3m3 3l3-3" />
             </svg>
             Scroll to explore
           </div>
@@ -257,7 +270,8 @@ export default function App() {
             {skills.map((skill) => (
               <div
                 key={skill.name}
-                className="bg-gray-700 bg-opacity-20 backdrop-blur-lg rounded-xl p-6 flex flex-col items-center justify-center gap-4 transition-all hover:-translate-y-1 hover:shadow-indigo-500/30"
+                className="bg-gray-700 bg-opacity-20 backdrop-blur-lg rounded-xl p-6 flex flex-col items-center justify-center gap-4 
+                           transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/40" // ⬅️ Glow 효과
               >
                 <div className="text-4xl">{skill.icon}</div> 
                 <p className="font-semibold text-white">{skill.name}</p>
@@ -265,7 +279,9 @@ export default function App() {
             ))}
           </div>
           <div className="text-center mt-12">
-            <button className="px-8 py-3 rounded-full bg-indigo-600 text-white font-semibold shadow-lg transition-all hover:bg-indigo-500 hover:-translate-y-1">
+            <button className="px-8 py-3 rounded-full bg-indigo-600 text-white font-semibold shadow-lg transition-all 
+                               hover:bg-indigo-500 hover:-translate-y-1 hover:shadow-indigo-500/50" // ⬅️ Glow 효과
+            >
               Show All (37)
             </button>
           </div>
@@ -287,9 +303,11 @@ export default function App() {
             <div className="relative border-l-2 border-gray-700 ml-6 space-y-16 py-10">
               
               {experiences.map((exp, index) => (
-                <div key={index} className="relative">
-                  <div className="absolute -left-3.5 mt-2 w-7 h-7 bg-indigo-600 rounded-full border-4 border-gray-800" />
-                  <div className="ml-10">
+                <div key={index} className="relative group"> {/* ⬅️ group 추가 */}
+                  <div className="absolute -left-3.5 mt-2 w-7 h-7 bg-indigo-600 rounded-full border-4 border-gray-800
+                              transition-all group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-indigo-500/50" />
+                  
+                  <div className="ml-10 transition-all group-hover:pl-2">
                     <p className="text-sm font-semibold text-indigo-400">{exp.date}</p>
                     <h3 className="mt-1 text-2xl font-bold text-white">{exp.title}</h3>
                     <p className="mt-1 text-md text-gray-400">{exp.company}</p>
@@ -330,7 +348,7 @@ export default function App() {
                   className={`px-4 py-2 rounded-full font-semibold text-sm transition-all
                     ${selectedCategory === category
                       ? 'bg-indigo-600 text-white shadow-lg'
-                      : 'bg-gray-700 bg-opacity-50 text-gray-300 hover:bg-gray-600'
+                      : 'bg-gray-700 bg-opacity-50 text-gray-300 hover:bg-gray-600 hover:shadow-lg hover:shadow-indigo-500/30' // ⬅️ Glow 효과
                     }
                   `}
                 >
@@ -354,7 +372,8 @@ export default function App() {
                   href={post.linkUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block bg-gray-800 rounded-lg shadow-xl transition-all hover:-translate-y-1 hover:shadow-indigo-500/30 overflow-hidden"
+                  className="block bg-gray-800 rounded-lg shadow-xl transition-all 
+                             hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/40 overflow-hidden" // ⬅️ Glow 효과
                 >
                   <div className="p-6">
                     <span className="text-xs px-2 py-1 rounded-full bg-indigo-900 text-indigo-300 font-medium">
@@ -412,18 +431,22 @@ export default function App() {
               <form className="md:col-span-2 space-y-6">
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-300">Name</label>
-                  <input type="text" id="name" className="mt-1 block w-full rounded-md border-gray-700 bg-gray-800 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3" />
+                  <input type="text" id="name" className="mt-1 block w-full rounded-md border-gray-700 bg-gray-800 text-white shadow-sm 
+                                                         focus:border-indigo-500 focus:ring-indigo-500 focus:shadow-lg focus:shadow-indigo-500/40 p-3 transition-all" />
                 </div>
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-300">Email</label>
-                  <input type="email" id="email" className="mt-1 block w-full rounded-md border-gray-700 bg-gray-800 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3" />
+                  <input type="email" id="email" className="mt-1 block w-full rounded-md border-gray-700 bg-gray-800 text-white shadow-sm 
+                                                          focus:border-indigo-500 focus:ring-indigo-500 focus:shadow-lg focus:shadow-indigo-500/40 p-3 transition-all" />
                 </div>
                 <div>
                   <label htmlFor="message" className="block text-sm font-medium text-gray-300">Your Short Message</label>
-                  <textarea id="message" rows={5} className="mt-1 block w-full rounded-md border-gray-700 bg-gray-800 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3" />
+                  <textarea id="message" rows={5} className="mt-1 block w-full rounded-md border-gray-700 bg-gray-800 text-white shadow-sm 
+                                                            focus:border-indigo-500 focus:ring-indigo-500 focus:shadow-lg focus:shadow-indigo-500/40 p-3 transition-all" />
                 </div>
                 <div className="text-right">
-                  <button type="submit" className="px-8 py-3 rounded-full bg-indigo-600 text-white font-semibold shadow-lg transition-all hover:bg-indigo-500">
+                  <button type="submit" className="px-8 py-3 rounded-full bg-indigo-600 text-white font-semibold shadow-lg 
+                                                    transition-all hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-500/50">
                     Send Message
                   </button>
                 </div>
