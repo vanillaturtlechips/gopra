@@ -26,9 +26,11 @@ function normalizeCategory(category: string): string {
 // App 컴포넌트
 export default function App() {
   
+  // ❗️ STUDY 섹션 상태 정의 (Cannot find name 오류 해결)
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedStudyCategory, setSelectedStudyCategory] = useState('All');
+  const [selectedStudyCategory, setSelectedStudyCategory] = useState('All'); 
+  
   const studyCategories = [
     'All','devops','GOlang','DataBase','Network','Operating System','Data Structure and Algorithm'
   ];
@@ -54,13 +56,14 @@ export default function App() {
     fetchPosts();
   }, []);
   
+  // ❗️ filteredPosts 로직 정의 (Cannot find name 오류 해결)
   const filteredPosts = selectedStudyCategory === 'All'
     ? posts
     : posts.filter(post =>
         normalizeCategory(post.category) === normalizeCategory(selectedStudyCategory)
       );
   
-  // ❗️ Skills: lucide-react 아이콘으로 수정 (색상 문제 해결)
+  // Skills: lucide-react에 실제로 있는 아이콘으로 수정
   const skills = [
     { name: 'AWS', icon: <Cloud size={32} /> },
     { name: 'Azure', icon: <Server size={32} /> }, 
@@ -138,11 +141,11 @@ export default function App() {
       <Aurora
         colorStops={["#3A29FF", "#FF94B4", "#FF3232"]} 
         amplitude={1.0}
-        speed={0.2} // ⬅️ 속도 조절한 값
+        speed={0.2}
         blend={0.5}
       />
       
-      {/* ❗️ StaggeredMenu: 로고/버튼 위치/디자인 문제 해결 ❗️ */}
+      {/* StaggeredMenu: 버튼/로고/패널 디자인 수정됨 */}
       <StaggeredMenu
         isFixed={true}
         position="right"
@@ -281,7 +284,7 @@ export default function App() {
               <h2 className="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
                 Featured Projects
               </h2>
-              <p className="mt-6 text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
+              <p className="mt-6 text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
                 Innovative solutions combining cloud infrastructure, automation, and modern development practices
               </p>
             </div>

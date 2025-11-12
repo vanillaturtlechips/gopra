@@ -1,0 +1,98 @@
+/* frontend/src/components/FlowingMenu.css */
+
+.menu-wrap {
+  width: 100%;
+  height: auto;
+  position: relative;
+  overflow: hidden; /* 마우스 오버 애니메이션 숨김 */
+}
+
+.menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.menu__item {
+  width: 100%;
+  position: relative;
+  border-top: 1px solid #3d3d52; /* 어두운 경계선 */
+  text-transform: uppercase;
+}
+.menu__item:last-child {
+  border-bottom: 1px solid #3d3d52;
+}
+
+.menu__item-link {
+  display: block;
+  font-size: clamp(2rem, 5vw, 4rem); /* 반응형 폰트 크기 */
+  font-weight: 700;
+  line-height: 1.2;
+  padding: 0.5em 1em;
+  color: #fff;
+  text-decoration: none;
+  overflow: hidden;
+  position: relative;
+  transition: color 0.3s;
+}
+
+.menu__item-link:hover {
+  color: #a5b4fc; /* indigo-300 */
+}
+
+/* --- Marquee (Animation Effect) Styles --- */
+
+.marquee {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 10; /* 텍스트 아래에 위치 */
+  pointer-events: none;
+  transform: translateY(0); /* gsap가 제어함 */
+}
+
+.marquee__inner-wrap {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform: translateY(0); /* gsap가 제어함 */
+}
+
+.marquee__inner {
+  width: 200%; /* 콘텐츠를 두 배로 늘림 */
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  white-space: nowrap;
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 900;
+  color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.marquee__inner span {
+    font-size: 1em;
+    color: #4f46e5; /* indigo-600 */
+}
+
+.marquee__img {
+  width: 120px; /* 이미지 크기 조절 */
+  height: 80px;
+  background-size: cover;
+  background-position: center;
+  border-radius: 4px;
+}
+@media (min-width: 640px) {
+    .marquee__img {
+        width: 180px;
+        height: 120px;
+    }
+}
