@@ -1,98 +1,120 @@
-/* frontend/src/components/FlowingMenu.css */
-
+/* components/FlowingMenu.css */
 .menu-wrap {
-  width: 100%;
-  height: auto;
-  position: relative;
-  overflow: hidden; /* 마우스 오버 애니메이션 숨김 */
-}
-
-.menu {
-  list-style: none;
-  padding: 0;
-  margin: 0;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .menu__item {
-  width: 100%;
   position: relative;
-  border-top: 1px solid #3d3d52; /* 어두운 경계선 */
-  text-transform: uppercase;
-}
-.menu__item:last-child {
-  border-bottom: 1px solid #3d3d52;
+  width: 100%;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  background: transparent;
+  transition: background 0.3s;
 }
 
+.menu__item:last-child {
+  border-bottom: none;
+}
+
+/* 1. 기본 상태 (정적 텍스트) */
 .menu__item-link {
   display: block;
-  font-size: clamp(2rem, 5vw, 4rem); /* 반응형 폰트 크기 */
-  font-weight: 700;
-  line-height: 1.2;
-  padding: 0.5em 1em;
-  color: #fff;
+  padding: 1.5rem 2rem;
+  font-size: 3rem; /* 폰트 크기 */
+  font-weight: 800;
+  color: #6b7280; /* 기본 회색 */
+  text-transform: uppercase;
   text-decoration: none;
-  overflow: hidden;
+  transition: opacity 0.3s;
   position: relative;
-  transition: color 0.3s;
+  z-index: 2;
 }
 
-.menu__item-link:hover {
-  color: #a5b4fc; /* indigo-300 */
+/* 호버 시 기본 텍스트는 숨김 (마퀴가 나오니까) */
+.menu__item:hover .menu__item-link,
+.menu__item.active .menu__item-link {
+  opacity: 0; 
 }
 
-/* --- Marquee (Animation Effect) Styles --- */
-
+/* 2. 호버 상태 (움직이는 마퀴) */
 .marquee {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  overflow: hidden;
-  z-index: 10; /* 텍스트 아래에 위치 */
+  display: flex;
+  align-items: center;
+  background-size: cover;
+  background-position: center;
+  opacity: 0; /* 평소엔 숨김 */
+  transition: opacity 0.4s ease;
+  z-index: 1;
   pointer-events: none;
-  transform: translateY(0); /* gsap가 제어함 */
 }
 
-.marquee__inner-wrap {
-  width: 100%;
-  height: 100%;
-  position: relative;
-  transform: translateY(0); /* gsap가 제어함 */
+/* 배경 이미지 어둡게 처리 */
+.marquee::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4); 
+  z-index: 1;
+}
+
+.menu__item:hover .marquee,
+.menu__item.active .marquee {
+  opacity: 1; /* 호버 시 등장 */
 }
 
 .marquee__inner {
-  width: 200%; /* 콘텐츠를 두 배로 늘림 */
-  height: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
-  white-space: nowrap;
-  font-size: clamp(2.5rem, 6vw, 5rem);
-  font-weight: 900;
-  color: #1a1a1a;
   display: flex;
-  align-items: center;
-  gap: 20px;
+  gap: 4rem; /* 글자 사이 간격 충분히 줌 */
+  width: max-content;
+  z-index: 2;
+  /* 애니메이션: 왼쪽으로 무한 이동 */
+  animation: marquee-scroll 15s linear infinite; 
 }
 
 .marquee__inner span {
-    font-size: 1em;
-    color: #4f46e5; /* indigo-600 */
+  display: block;
+  font-size: 3rem;
+  font-weight: 800;
+  color: #fff; /* 흰색 글씨 */
+  text-transform: uppercase;
+  white-space: nowrap;
+  /* 글자 테두리 효과 (선택) */
+  -webkit-text-stroke: 1px transparent; 
 }
 
-.marquee__img {
-  width: 120px; /* 이미지 크기 조절 */
-  height: 80px;
-  background-size: cover;
-  background-position: center;
-  border-radius: 4px;
+/* 3. 선택된 항목 강조 */
+.menu__item.active .marquee {
+  opacity: 1;
 }
-@media (min-width: 640px) {
-    .marquee__img {
-        width: 180px;
-        height: 120px;
-    }
+.menu__item.active .menu__item-link {
+  opacity: 0;
+}
+
+@keyframes marquee-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%); /* 텍스트 절반만큼 이동하고 리셋 */
+  }
+}
+
+/* 모바일 대응 */
+@media (max-width: 768px) {
+  .menu__item-link, .marquee__inner span {
+    font-size: 1.5rem;
+    padding: 1rem 1.5rem;
+  }
 }

@@ -2,14 +2,16 @@ import { useState, useEffect } from 'react';
 import Aurora from './components/Aurora';
 import './components/Aurora.css';
 import StaggeredMenu from './components/StaggeredMenu';
-
-// lucide-react에서 실제로 존재하는 아이콘들만 임포트
+import FlowingMenu from './components/FlowingMenu'; 
+import { Github } from 'lucide-react';
 import { 
-  Cloud, Cpu, Container, GitBranch, Github, 
-  Heart, Rocket, Server, Anchor, Box 
-} from 'lucide-react';
+  SiGo, SiNextdotjs, SiNodedotjs, SiPython, SiTypescript, 
+  SiDocker, SiKubernetes, SiArgo, SiHelm, SiGithubactions, 
+  SiTerraform 
+} from "react-icons/si";
+import { FaAws } from "react-icons/fa";
+import { VscShield } from "react-icons/vsc";
 
-// Post 인터페이스
 interface Post {
   id: number;
   title: string;
@@ -18,22 +20,44 @@ interface Post {
   linkUrl: string;
 }
 
-// 카테고리 정규화 함수
 function normalizeCategory(category: string): string {
   return category.toLowerCase().replace(/[\s-]/g, '');
 }
 
-// App 컴포넌트
 export default function App() {
-  
-  // ❗️ STUDY 섹션 상태 정의 (Cannot find name 오류 해결)
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedStudyCategory, setSelectedStudyCategory] = useState('All'); 
   
+  const [selectedStudyCategory, setSelectedStudyCategory] = useState('All'); 
   const studyCategories = [
     'All','devops','GOlang','DataBase','Network','Operating System','Data Structure and Algorithm'
   ];
+
+  const [activeSkillTab, setActiveSkillTab] = useState('All');
+  const skillCategories = ['All', 'Languages', 'Cloud & Infra', 'DevSecOps'];
+
+  const skills = [
+    { name: 'GoLang', icon: <SiGo />, color: '#00ADD8', category: 'Languages' },
+    { name: 'Python', icon: <SiPython />, color: '#3776AB', category: 'Languages' },
+    { name: 'TypeScript', icon: <SiTypescript />, color: '#3178C6', category: 'Languages' },
+    { name: 'Node.js', icon: <SiNodedotjs />, color: '#339933', category: 'Languages' },
+    { name: 'Next.js', icon: <SiNextdotjs />, color: '#ffffff', category: 'Languages' },
+    
+    { name: 'AWS', icon: <FaAws />, color: '#FF9900', category: 'Cloud & Infra' },
+    { name: 'Terraform', icon: <SiTerraform />, color: '#7B42BC', category: 'Cloud & Infra' },
+    { name: 'Docker', icon: <SiDocker />, color: '#2496ED', category: 'Cloud & Infra' },
+    { name: 'Kubernetes', icon: <SiKubernetes />, color: '#326CE5', category: 'Cloud & Infra' },
+    { name: 'Helm Chart', icon: <SiHelm />, color: '#0F1689', category: 'Cloud & Infra' },
+    
+    { name: 'ArgoCD', icon: <SiArgo />, color: '#EF7B4D', category: 'DevSecOps' },
+    { name: 'GitHub Actions', icon: <SiGithubactions />, color: '#2088FF', category: 'DevSecOps' },
+    { name: 'Semgrep', icon: <VscShield />, color: '#358A7F', category: 'DevSecOps' },
+    { name: 'Trivy', icon: <VscShield />, color: '#00A0E1', category: 'DevSecOps' },
+  ];
+
+  const filteredSkills = activeSkillTab === 'All' 
+    ? skills 
+    : skills.filter(s => s.category === activeSkillTab);
   
   const fetchPosts = () => {
     setIsLoading(true);
@@ -56,26 +80,12 @@ export default function App() {
     fetchPosts();
   }, []);
   
-  // ❗️ filteredPosts 로직 정의 (Cannot find name 오류 해결)
   const filteredPosts = selectedStudyCategory === 'All'
     ? posts
     : posts.filter(post =>
         normalizeCategory(post.category) === normalizeCategory(selectedStudyCategory)
       );
   
-  // Skills: lucide-react에 실제로 있는 아이콘으로 수정
-  const skills = [
-    { name: 'AWS', icon: <Cloud size={32} /> },
-    { name: 'Azure', icon: <Server size={32} /> }, 
-    { name: 'Kubernetes', icon: <Anchor size={32} /> },
-    { name: 'Docker', icon: <Container size={32} /> },
-    { name: 'Helm', icon: <Box size={32} /> },
-    { name: 'Terraform', icon: <GitBranch size={32} /> }, 
-    { name: 'Ansible', icon: <Heart size={32} /> },
-    { name: 'GitHub Actions', icon: <Rocket size={32} /> },
-    { name: 'Jenkins', icon: <Cpu size={32} /> },
-  ];
-
   const experiences = [
     {
       date: 'Sep 2025 - Present',
@@ -129,15 +139,22 @@ export default function App() {
     { label: 'GitHub', link: GITHUB_URL },
     { label: 'LinkedIn', link: 'https://linkedin.com/in/your-linkedin' },
   ];
+  
+  const categoryImages: Record<string, string> = {
+    'devops': 'https://images.unsplash.com/photo-1667372393119-c81c0e83039d?q=80&w=2000&auto=format&fit=crop',
+    'GOlang': 'https://images.unsplash.com/photo-1649180556628-9ba704115795?q=80&w=2000&auto=format&fit=crop',
+    'DataBase': 'https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=2000&auto=format&fit=crop',
+    'Network': 'https://images.unsplash.com/photo-1558494949-efc53075a3bd?q=80&w=2000&auto=format&fit=crop',
+    'Operating System': 'https://images.unsplash.com/photo-1629654297299-c8506221ca97?q=80&w=2000&auto=format&fit=crop',
+    'Data Structure and Algorithm': 'https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=2000&auto=format&fit=crop'
+  };
 
   return (
     <>
-      {/* 레이어 1: "순수 검은색 배경" (z-[-2]) */}
       <div 
         className="fixed inset-0 z-[-2] w-full h-full bg-black"
       />
 
-      {/* 레이어 2: "오로라" (z-[-1]) */}
       <Aurora
         colorStops={["#3A29FF", "#FF94B4", "#FF3232"]} 
         amplitude={1.0}
@@ -145,9 +162,7 @@ export default function App() {
         blend={0.5}
       />
       
-      {/* StaggeredMenu: 버튼/로고/패널 디자인 수정됨 */}
       <StaggeredMenu
-        isFixed={true}
         position="right"
         items={menuItems}
         socialItems={socialItems}
@@ -156,17 +171,15 @@ export default function App() {
         menuButtonColor="#fff"
         openMenuButtonColor="#1a1a1a"
         changeMenuColorOnOpen={true}
-        colors={['#ffffff', '#f0f0f0']}
         accentColor="#3A29FF"
         githubUrl={GITHUB_URL}
       />
 
-      {/* 레이어 3: "콘텐츠" (z-0) */}
       <div className="relative z-0 w-full min-h-screen text-gray-300 font-sans">
         
-        <main className="max-w-5xl mx-auto p-8">
+        <main className="max-w-6xl mx-auto p-8">
 
-          {/* About 섹션 */}
+          {/* About Section */}
           <section id="about" className="min-h-screen flex flex-col items-center justify-center text-center pt-40 md:pt-20 -mt-20">
             <h1 className="text-6xl md:text-8xl font-bold text-white tracking-tight">
               Myong Ii Lee
@@ -218,37 +231,72 @@ export default function App() {
             </div>
           </section>
 
-          {/* Skills 섹션 */}
-          <section id="skills" className="min-h-screen pt-20">
-            <h2 className="text-4xl font-bold text-center text-white">
-              Technical Skills
-            </h2>
-            <p className="mt-4 text-lg text-center text-gray-400 max-w-2xl mx-auto">
-              A curated selection of my expertise in DevOps and Cloud Computing.
-            </p>
-            <div className="mt-16 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-5">
-              {skills.map((skill) => (
+          {/* Skills Section */}
+          <section id="skills" className="min-h-screen pt-20 relative flex flex-col items-center">
+            <div className="text-center mb-12 space-y-4">
+              <h2 className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600">
+                Technical Arsenal
+              </h2>
+              <p className="text-lg text-gray-400 max-w-2xl mx-auto leading-relaxed">
+                안정적이고 확장 가능한 시스템을 구축하기 위한 저의 무기들입니다.<br/>
+                <span className="text-sm text-gray-500">아이콘에 마우스를 올려보세요.</span>
+              </p>
+            </div>
+
+            <div className="flex flex-wrap justify-center gap-3 mb-12">
+              {skillCategories.map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveSkillTab(tab)}
+                  className={`
+                    px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 border
+                    ${activeSkillTab === tab 
+                      ? 'bg-white/10 border-white/30 text-white shadow-[0_0_15px_rgba(255,255,255,0.3)] scale-105' 
+                      : 'bg-transparent border-transparent text-gray-500 hover:text-gray-300 hover:bg-white/5'
+                    }
+                  `}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5 w-full px-4">
+              {filteredSkills.map((skill) => (
                 <div
                   key={skill.name}
-                  className="bg-gray-800/50 backdrop-blur-lg rounded-2xl p-6 flex flex-col items-center justify-center gap-4 
-                             transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/40 
-                             ring-1 ring-white/10 text-indigo-300 hover:text-white"
+                  className="group relative flex flex-col items-center justify-center p-6 rounded-2xl border border-white/5 bg-white/[0.02] backdrop-blur-sm transition-all duration-500 hover:border-white/10 hover:bg-white/[0.05] hover:-translate-y-2"
                 >
-                  <div className="text-4xl">{skill.icon}</div> 
-                  <p className="font-semibold text-white">{skill.name}</p>
+                  <div 
+                    className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-20 transition-opacity duration-500 blur-xl"
+                    style={{ backgroundColor: skill.color }}
+                  />
+                  
+                  <div 
+                    className="relative z-10 text-5xl mb-4 transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]"
+                    style={{ color: skill.color }}
+                  >
+                    <div className="transition-transform duration-500 group-hover:animate-pulse">
+                      {skill.icon}
+                    </div>
+                  </div>
+
+                  <h3 className="relative z-10 text-sm font-semibold text-gray-400 group-hover:text-white transition-colors">
+                    {skill.name}
+                  </h3>
+                  
+                  <div 
+                    className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-[2px] bg-gradient-to-r from-transparent via-white to-transparent group-hover:w-1/2 transition-all duration-500 opacity-50"
+                    style={{ 
+                      backgroundImage: `linear-gradient(90deg, transparent, ${skill.color}, transparent)` 
+                    }}
+                  />
                 </div>
               ))}
             </div>
-            <div className="text-center mt-12">
-              <button className="px-8 py-3 rounded-full bg-indigo-600 text-white font-semibold shadow-lg transition-all 
-                                 hover:bg-indigo-500 hover:-translate-y-1 hover:shadow-indigo-500/50"
-              >
-                Show All (37)
-              </button>
-            </div>
           </section>
 
-          {/* Experience 섹션 */}
+          {/* Experience Section */}
           <section id="experience" className="min-h-screen pt-20">
             <h2 className="text-4xl font-bold text-center text-white">
               Professional Experience & Projects
@@ -278,7 +326,7 @@ export default function App() {
             </div>
           </section>
 
-          {/* Projects 섹션 */}
+          {/* Projects Section */}
           <section id="projects" className="min-h-screen pt-20">
             <div className="text-center mb-16">
               <h2 className="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
@@ -391,6 +439,7 @@ export default function App() {
             )}
           </section>
 
+          {/* Study Section */}
           <section id="study" className="min-h-screen pt-20">
             <h2 className="text-4xl font-bold text-center text-white">
               My Study & Blogs
@@ -398,57 +447,72 @@ export default function App() {
             <p className="mt-4 text-lg text-center text-gray-400 max-w-2xl mx-auto">
               Insights, tutorials, and thoughts on DevOps, cloud technologies, and software development.
             </p>
-            <div className="my-12 rounded-2xl bg-gray-600/20 p-6 md:p-8 backdrop-blur-xl shadow-xl ring-1 ring-white/10">
-              <h3 className="text-sm font-semibold text-gray-400 mb-4">
-                Filter by tags
-              </h3>
-              <div className="flex flex-wrap gap-3">
-                {studyCategories.map((category) => (
-                  <button
-                    key={category}
-                    onClick={() => setSelectedStudyCategory(category)}
-                    className={`px-4 py-2 rounded-full font-semibold text-sm transition-all
-                      ${selectedStudyCategory === category
-                        ? 'bg-indigo-600 text-white shadow-lg'
-                        : 'bg-gray-700 bg-opacity-50 text-gray-300 hover:bg-gray-600 hover:shadow-lg hover:shadow-indigo-500/30'
-                      }
-                    `}
-                  >
-                    {category}
-                  </button>
-                ))}
-              </div>
+            
+            <div className="my-12">
+              <FlowingMenu 
+                items={studyCategories} 
+                selectedItem={selectedStudyCategory}
+                onSelect={setSelectedStudyCategory}
+                images={categoryImages}
+              />
             </div>
-            <p className="text-sm text-gray-500 mb-6">
+            
+            <p className="text-sm text-gray-500 mb-6 mt-8">
               '{selectedStudyCategory}' 카테고리 ({filteredPosts.length}개 게시글)
             </p>
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {isLoading ? (
-                <p className="text-gray-500 col-span-full">포스트를 불러오는 중...</p>
+                <p className="text-gray-500 col-span-full text-center py-10">포스트를 불러오는 중...</p>
               ) : filteredPosts.length > 0 ? (
-                filteredPosts.map((post) => (
+                filteredPosts.map((post, index) => (
                   <a
                     key={post.id}
                     href={post.linkUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block bg-gray-700/50 rounded-lg shadow-xl transition-all 
-                               hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/40 
-                               overflow-hidden ring-1 ring-white/10"
+                    className="group relative block rounded-2xl overflow-hidden shadow-xl 
+                               transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl 
+                               bg-gradient-to-br from-gray-800/50 to-gray-900/50 ring-1 ring-white/10"
+                    style={{ 
+                      animation: 'slideInUp 0.5s ease-out forwards',
+                      animationDelay: `${index * 100}ms`, 
+                      opacity: 0 
+                    }}
                   >
-                    <div className="p-6">
-                      <span className="text-xs px-2 py-1 rounded-full bg-indigo-900 text-indigo-300 font-medium">
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/10 via-purple-600/10 to-pink-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    
+                    <div className="relative p-6 space-y-4">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium 
+                                       bg-indigo-900/50 text-indigo-300 ring-1 ring-indigo-500/30">
                         {post.category}
                       </span>
-                      <h3 className="mt-4 text-2xl font-semibold text-white">{post.title}</h3>
+                      <h3 className="mt-4 text-xl font-bold text-white group-hover:text-transparent group-hover:bg-clip-text 
+                                     group-hover:bg-gradient-to-r group-hover:from-indigo-400 group-hover:to-purple-400 
+                                     transition-all duration-300">
+                        {post.title}
+                      </h3>
                       {post.content && (
-                        <p className="mt-2 text-gray-400 whitespace-pre-wrap">{post.content}</p>
+                        <p className="text-gray-400 text-sm leading-relaxed line-clamp-3 group-hover:text-gray-300 transition-colors">
+                          {post.content}
+                        </p>
                       )}
+                      <div className="flex items-center justify-between pt-4 border-t border-gray-700/50">
+                        <span className="text-xs text-gray-500 group-hover:text-indigo-400 transition-colors flex items-center gap-2">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                          View Post
+                        </span>
+                        <svg className="w-5 h-5 text-gray-600 group-hover:text-indigo-400 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
                     </div>
                   </a>
                 ))
               ) : (
-                <p className="text-gray-500 col-span-full">
+                <p className="text-gray-500 col-span-full text-center py-10">
                   {selectedStudyCategory === 'All'
                     ? "아직 작성된 게시글이 없습니다."
                     : `'${selectedStudyCategory}' 카테고리에 게시글이 없습니다.`
@@ -458,55 +522,19 @@ export default function App() {
             </div>
           </section>
 
+          {/* Contact Section */}
           <section id="contact" className="min-h-screen pt-20">
             <h2 className="text-4xl font-bold text-center text-white">
               Connect With Me
             </h2>
-            <p className="mt-4 text-lg text-center text-gray-400 max-w-2xl mx-auto">
-              Have a project in mind or a question? Reach out and let's turn your ideas into reality.
+            <p className="mt-4 text-lg text-center text-gray-400 max-w-2xl mx-auto mb-12">
+              Trigger a communication workflow to get in touch.
             </p>
-            <div className="mt-16 max-w-4xl mx-auto bg-gray-700/20 backdrop-blur-xl rounded-xl shadow-2xl p-8 md:p-12 ring-1 ring-white/10">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-                <div className="space-y-6">
-                  <h3 className="text-2xl font-bold text-white">Contact Info</h3>
-                  <div>
-                    <p className="text-gray-400">Email Me:</p>
-                    <a href="mailto:your-email@gmail.com" className="text-indigo-400 font-medium hover:underline">
-                      your-email@gmail.com
-                    </a>
-                  </div>
-                  <div>
-                    <p className="text-gray-400">GitHub:</p>
-                    <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className="text-indigo-400 font-medium hover:underline">
-                      github.com/your-github
-                    </a>
-                  </div>
-                </div>
-                <form className="md:col-span-2 space-y-6">
-                  <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-300">Name</label>
-                    <input type="text" id="name" className="mt-1 block w-full rounded-md border-gray-700 bg-gray-800 text-white shadow-sm 
-                                                           focus:border-indigo-500 focus:ring-indigo-500 focus:shadow-lg focus:shadow-indigo-500/40 p-3 transition-all" />
-                  </div>
-                  <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-300">Email</label>
-                    <input type="email" id="email" className="mt-1 block w-full rounded-md border-gray-700 bg-gray-800 text-white shadow-sm 
-                                                            focus:border-indigo-500 focus:ring-indigo-500 focus:shadow-lg focus:shadow-indigo-500/40 p-3 transition-all" />
-                  </div>
-                  <div>
-                    <label htmlFor="message" className="block text-sm font-medium text-gray-300">Your Short Message</label>
-                    <textarea id="message" rows={5} className="mt-1 block w-full rounded-md border-gray-700 bg-gray-800 text-white shadow-sm 
-                                                              focus:border-indigo-500 focus:ring-indigo-500 focus:shadow-lg focus:shadow-indigo-500/40 p-3 transition-all" />
-                  </div>
-                  <div className="text-right">
-                    <button type="submit" className="px-8 py-3 rounded-full bg-indigo-600 text-white font-semibold shadow-lg 
-                                                      transition-all hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-500/50">
-                      Send Message
-                    </button>
-                  </div>
-                </form>
-              </div>
+            
+            <div className="w-full flex justify-center">
+
             </div>
+            
           </section>
 
         </main>
