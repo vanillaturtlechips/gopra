@@ -169,15 +169,15 @@ export default function App() {
           {/* About 섹션 */}
           <section id="about" className="min-h-screen flex flex-col items-center justify-center text-center pt-40 md:pt-20 -mt-20">
             <h1 className="text-6xl md:text-8xl font-bold text-white tracking-tight">
-              Myong G. Kim
+              Myong Ii Lee
             </h1>
             <p className="mt-6 text-2xl md:text-3xl font-medium text-indigo-400">
-              DevOps & Cloud Engineer
+              DevSecOps & Cloud Engineer
             </p>
             <p className="mt-8 text-lg max-w-2xl text-gray-400">
-              새로운 기술을 만나면 설레는 개발자입니다.
-              이 포트폴리오는 Vercel에서 벗어나 Go (백엔드)와 React (프론트엔드)를
-              직접 VPS에 배포하기 위해 만들어졌습니다. (GitOps 방식)
+              새로운 기술을 만날 때마다 심장이 뛰는 개발자, 이명일입니다. 보안 관제에서 시작된 왜?라는 질문을 품고 개발의 세계로 뛰어들었습니다.
+              문제를 발견하는 것을 넘어, 직접 코드로 해결하고 더 나은 시스템을 만드는 과정에서 큰 성취감을 느낍니다.
+              도전적인 과제를 해결하고, 아이디어를 현실로 구현하는 데 열정을 쏟고 있습니다.
             </p>
             <div className="mt-10 flex items-center justify-center gap-4">
               <a
