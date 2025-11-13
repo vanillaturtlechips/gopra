@@ -41,8 +41,22 @@ services:
     restart: always
     ports:
       - "80:80"
+      - "443:443"
+    volumes:
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./certs:/etc/letsencrypt:ro
     depends_on:
       - backend
+
+  certbot:
+    image: certbot/certbot
+    container_name: gopra_certbot
+    volumes:
+      - ./certs:/etc/letsencrypt
+      - ./frontend/dist:/var/www/html
+    depends_on:
+      - frontend
+    command: ["echo", "Certbot ready. Run 'docker-compose run --rm certbot ...' to issue certificate."]
 
   syncer:
     image: node:20-alpine
