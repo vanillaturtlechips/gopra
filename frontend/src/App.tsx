@@ -3,6 +3,7 @@ import Aurora from './components/Aurora';
 import './components/Aurora.css';
 import StaggeredMenu from './components/StaggeredMenu';
 import FlowingMenu from './components/FlowingMenu'; 
+import Lanyard from './components/Lanyard';
 import { Github } from 'lucide-react';
 import { 
   SiGo, SiNextdotjs, SiNodedotjs, SiPython, SiTypescript, 
@@ -151,9 +152,7 @@ export default function App() {
 
   return (
     <>
-      <div 
-        className="fixed inset-0 z-[-2] w-full h-full bg-black"
-      />
+      <div className="fixed inset-0 z-[-2] w-full h-full bg-black" />
 
       <Aurora
         colorStops={["#3A29FF", "#FF94B4", "#FF3232"]} 
@@ -179,20 +178,38 @@ export default function App() {
         
         <main className="max-w-6xl mx-auto p-8">
 
-          {/* About Section */}
-          <section id="about" className="min-h-screen flex flex-col items-center justify-center text-center pt-40 md:pt-20 -mt-20">
-            <h1 className="text-6xl md:text-8xl font-bold text-white tracking-tight">
-              Myong Ii Lee
-            </h1>
-            <p className="mt-6 text-2xl md:text-3xl font-medium text-indigo-400">
-              DevSecOps & Cloud Engineer
-            </p>
-            <p className="mt-8 text-lg max-w-2xl text-gray-400">
-              새로운 기술을 만날 때마다 심장이 뛰는 개발자, 이명일입니다. 보안 관제에서 시작된 왜?라는 질문을 품고 개발의 세계로 뛰어들었습니다.
-              문제를 발견하는 것을 넘어, 직접 코드로 해결하고 더 나은 시스템을 만드는 과정에서 큰 성취감을 느낍니다.
-              도전적인 과제를 해결하고, 아이디어를 현실로 구현하는 데 열정을 쏟고 있습니다.
-            </p>
-            <div className="mt-10 flex items-center justify-center gap-4">
+          {/* About Section - 첫 화면에 카드 표시 */}
+          <section id="about" className="min-h-screen flex flex-col items-center justify-center text-center pt-40 md:pt-20 -mt-20 relative overflow-hidden">
+            
+            {/* Lanyard - 화면 상단에 고정 */}
+            <div className="absolute top-0 left-0 right-0 h-[70vh] z-20 pointer-events-none">
+              <div className="w-full h-full pointer-events-auto">
+                <Lanyard 
+                  position={[0, 0, 15]} 
+                  gravity={[0, -40, 0]} 
+                  fov={25}
+                  transparent={true}
+                />
+              </div>
+            </div>
+
+            {/* 텍스트 컨텐츠 */}
+            <div className="relative z-10 pointer-events-none select-none mt-32">
+              <h1 className="text-6xl md:text-8xl font-bold text-white tracking-tight pointer-events-auto">
+                Myong Ii Lee
+              </h1>
+              <p className="mt-6 text-2xl md:text-3xl font-medium text-indigo-400 pointer-events-auto">
+                DevSecOps & Cloud Engineer
+              </p>
+              <p className="mt-8 text-lg max-w-2xl text-gray-400 mx-auto pointer-events-auto">
+                새로운 기술을 만날 때마다 심장이 뛰는 개발자, 이명일입니다. 보안 관제에서 시작된 왜?라는 질문을 품고 개발의 세계로 뛰어들었습니다.
+                문제를 발견하는 것을 넘어, 직접 코드로 해결하고 더 나은 시스템을 만드는 과정에서 큰 성취감을 느낍니다.
+                도전적인 과제를 해결하고, 아이디어를 현실로 구현하는 데 열정을 쏟고 있습니다.
+              </p>
+            </div>
+
+            {/* 버튼들 */}
+            <div className="relative z-30 mt-10 flex items-center justify-center gap-4">
               <a
                 href="#contact"
                 className="px-6 py-3 rounded-full bg-indigo-600 text-white font-semibold shadow-lg transition-all 
@@ -221,7 +238,7 @@ export default function App() {
                 </svg>
               </a>
             </div>
-            <div className="absolute bottom-10 text-gray-500 animate-bounce">
+            <div className="absolute bottom-10 text-gray-500 animate-bounce z-10">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" 
                    className="w-6 h-6 mx-auto cursor-pointer"> 
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 13.5a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
@@ -522,19 +539,72 @@ export default function App() {
             </div>
           </section>
 
-          {/* Contact Section */}
-          <section id="contact" className="min-h-screen pt-20">
-            <h2 className="text-4xl font-bold text-center text-white">
+          {/* Contact Section - 마지막 섹션에도 카드 표시 */}
+          <section id="contact" className="min-h-screen pt-20 relative">
+            <h2 className="text-4xl font-bold text-center text-white mb-4">
               Connect With Me
             </h2>
-            <p className="mt-4 text-lg text-center text-gray-400 max-w-2xl mx-auto mb-12">
+            <p className="text-lg text-center text-gray-400 max-w-2xl mx-auto mb-12">
               Trigger a communication workflow to get in touch.
             </p>
             
-            <div className="w-full flex justify-center">
-
+            {/* Contact 섹션 카드 - 더블클릭으로 나타나는 기능 추가 가능 */}
+            <div className="relative h-[600px] w-full">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center space-y-6">
+                  <div className="text-gray-500 mb-8">
+                    <p className="text-sm mb-4">💌 명함을 더블클릭해서 연락처를 확인하세요!</p>
+                  </div>
+                  
+                  <div className="flex gap-4 justify-center">
+                    <a
+                      href="mailto:your-email@example.com"
+                      className="px-6 py-3 rounded-full bg-indigo-600/20 text-indigo-300 font-semibold 
+                                 border border-indigo-500/30 transition-all hover:bg-indigo-600 hover:text-white 
+                                 hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/50"
+                    >
+                      📧 Email
+                    </a>
+                    <a
+                      href={GITHUB_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-6 py-3 rounded-full bg-gray-700/20 text-gray-300 font-semibold 
+                                 border border-gray-600/30 transition-all hover:bg-gray-700 hover:text-white 
+                                 hover:-translate-y-1 hover:shadow-lg hover:shadow-gray-500/50"
+                    >
+                      <Github className="inline mr-2" size={18} />
+                      GitHub
+                    </a>
+                    <a
+                      href="https://linkedin.com/in/your-linkedin"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-6 py-3 rounded-full bg-blue-600/20 text-blue-300 font-semibold 
+                                 border border-blue-500/30 transition-all hover:bg-blue-600 hover:text-white 
+                                 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/50"
+                    >
+                      💼 LinkedIn
+                    </a>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Contact 섹션의 Lanyard */}
+              <div className="absolute inset-0 pointer-events-none">
+                <div className="w-full h-full pointer-events-auto">
+                  <Lanyard 
+                    position={[0, 0, 15]} 
+                    gravity={[0, -40, 0]} 
+                    fov={25}
+                    transparent={true}
+                    onCardDoubleClick={() => {
+                      alert('📇 Contact Info:\n\nEmail: your-email@example.com\nGitHub: github.com/your-github\nLinkedIn: linkedin.com/in/your-linkedin');
+                    }}
+                  />
+                </div>
+              </div>
             </div>
-            
           </section>
 
         </main>

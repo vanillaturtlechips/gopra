@@ -1,15 +1,12 @@
 import { useRef, useState } from 'react'
-import { Canvas, extend, useThree, useFrame } from '@react-three/fiber'
-import { useGLTF, useTexture, Environment, Lightformer } from '@react-three/drei'
+import { Canvas, useThree, useFrame } from '@react-three/fiber'
+import { useGLTF, useTexture, Environment, Lightformer, Line } from '@react-three/drei'
 import { BallCollider, CuboidCollider, Physics, RigidBody, useRopeJoint, useSphericalJoint, RapierRigidBody } from '@react-three/rapier'
-import { MeshLineGeometry, MeshLineMaterial } from 'meshline'
 import * as THREE from 'three'
 
-// ⚠️ 에셋 파일이 실제로 존재하는지 꼭 확인해주세요!
-import cardGLB from '../assets/lanyard/card.glb' 
+// @ts-ignore
+import cardGLB from '../assets/lanyard/card.glb'
 import lanyardTexture from '../assets/lanyard/lanyard.png'
-
-extend({ MeshLineGeometry, MeshLineMaterial })
 
 interface LanyardProps {
   position?: [number, number, number];
@@ -49,7 +46,6 @@ export default function Lanyard({
 }
 
 function Band({ onCardDoubleClick }: { onCardDoubleClick?: () => void }) {
-  // unused variable 'materials' removed
   const { nodes } = useGLTF(cardGLB) as any
   const texture = useTexture(lanyardTexture)
   const { width, height } = useThree((state) => state.size)
@@ -57,16 +53,16 @@ function Band({ onCardDoubleClick }: { onCardDoubleClick?: () => void }) {
   texture.wrapS = texture.wrapT = THREE.RepeatWrapping
   texture.repeat.set(1, 1)
 
-  // ❗️ Fix: null!을 사용하여 초기값은 null이지만 타입은 RapierRigidBody임을 명시
   const fixed = useRef<RapierRigidBody>(null!)
   const j1 = useRef<RapierRigidBody>(null!)
   const j2 = useRef<RapierRigidBody>(null!)
   const j3 = useRef<RapierRigidBody>(null!)
   const card = useRef<RapierRigidBody>(null!)
 
-  const curve = new THREE.CatmullRomCurve3([
+  const [linePoints, setLinePoints] = useState<THREE.Vector3[]>([
     new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()
   ])
+
   const [dragged, drag] = useState<THREE.Vector3 | false>(false)
   const vec = new THREE.Vector3()
   const dir = new THREE.Vector3()
@@ -76,7 +72,6 @@ function Band({ onCardDoubleClick }: { onCardDoubleClick?: () => void }) {
   useRopeJoint(j2, j3, [[0, 0, 0], [0, 0, 0], 1])
   useSphericalJoint(j3, card, [[0, 0, 0], [0, 1.45, 0]])
 
-  // unused variable 'delta' removed from parameters
   useFrame((state) => {
     if (dragged) {
       vec.set(state.pointer.x, state.pointer.y, 0.5).unproject(state.camera)
@@ -86,20 +81,18 @@ function Band({ onCardDoubleClick }: { onCardDoubleClick?: () => void }) {
       card.current?.setNextKinematicTranslation({ x: vec.x - dragged.x, y: vec.y - dragged.y, z: vec.z - dragged.z })
     }
     if (fixed.current) {
-      // Fix: unused variable 'y' removed/inlined
-      // Calculate y position dynamically based on aspect ratio to keep it at top
       fixed.current.setNextKinematicTranslation({ x: 0, y: (height / width) * 2.5 + 1.5, z: 0 })
     }
-  })
 
-  const lineRef = useRef<any>(null)
-  useFrame(() => {
+    // Update line points
     if (fixed.current && j1.current && j2.current && j3.current && card.current) {
-      curve.points[0].copy(j3.current.translation())
-      curve.points[1].copy(j2.current.translation())
-      curve.points[2].copy(j1.current.translation())
-      curve.points[3].copy(fixed.current.translation())
-      if (lineRef.current) lineRef.current.advance(curve.getPoints(50))
+      const curve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3().copy(j3.current.translation()),
+        new THREE.Vector3().copy(j2.current.translation()),
+        new THREE.Vector3().copy(j1.current.translation()),
+        new THREE.Vector3().copy(fixed.current.translation())
+      ])
+      setLinePoints(curve.getPoints(50))
     }
   })
 
@@ -144,8 +137,6 @@ function Band({ onCardDoubleClick }: { onCardDoubleClick?: () => void }) {
               e.stopPropagation();
               if (onCardDoubleClick) onCardDoubleClick();
             }}
-            // ❗️ Fix: style prop removed from <group>
-            // 대신 마우스 오버 시 커서 변경 로직 추가
             onPointerOver={() => { document.body.style.cursor = 'grab'; }}
             onPointerOut={() => { document.body.style.cursor = 'auto'; }}
           >
@@ -154,19 +145,14 @@ function Band({ onCardDoubleClick }: { onCardDoubleClick?: () => void }) {
         </RigidBody>
       </group>
       
-      <mesh ref={lineRef}>
-        <meshLineGeometry />
-        <meshLineMaterial 
-          transparent 
-          lineWidth={0.3} 
-          color={'white'} 
-          depthTest={false} 
-          resolution={[width, height]} 
-          useMap={1} 
-          map={texture} 
-          repeat={[-3, 1]} 
-        />
-      </mesh>
+      {/* drei의 Line 컴포넌트 사용 */}
+      <Line
+        points={linePoints}
+        color="white"
+        lineWidth={3}
+        transparent
+        opacity={0.8}
+      />
     </>
   )
 }
