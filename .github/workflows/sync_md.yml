@@ -54,7 +54,7 @@ jobs:
           # 이 비밀번호도 GitHub Secret으로 관리하는 것을 강력히 권장합니다.
           PGPASSWORD: ${{ secrets.DB_PASSWORD }} # (예: 'gopra_pass'를 Secret으로 등록)
         run: |
-          psql -h localhost -p 5432 -U gopra_user -d gopra_db -c "SELECT version();"
+          psql -h 127.0.0.1 -p 5432 -U gopra_user -d gopra_db -c "SELECT version();"
           echo "DB 연결 테스트 성공!"
 
       # -----------------------------------------------------------------
