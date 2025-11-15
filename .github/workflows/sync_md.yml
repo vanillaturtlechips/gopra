@@ -71,30 +71,23 @@ jobs:
         with:
           node-version: '20' # 또는 '18'
 
+      - name: Install Node.js dependencies
+        working-directory: ./frontend
+        run: npm install      
+
       - name: Run DB Sync Script (Node.js)
         env:
           # 스크립트가 이 환경 변수를 읽어 'localhost'로 접속하도록 해야 합니다.
           POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+          GIT_REPO_OWNER: ${{ github.repository_owner }}
+          GIT_REPO_SLUG: ${{ github.event.repository.name }}
+          CONTENT_ROOT_PATH: 'study-content'
         run: |
           # (필요시 npm install pg)
           # 'frontend/scripts/sync.mjs' 파일이 존재한다고 가정
           # 이 스크립트는 'localhost'로 접속하도록 수정되어야 합니다.
           node frontend/scripts/sync.mjs
 
-      - name: Install Node.js dependencies
-        working-directory: ./frontend
-        run: npm install
-
-
-      - name: Run DB Sync Script (Node.js)
-        working-directory: ./frontend
-        env:
-          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
-          GIT_REPO_OWNER: ${{ github.repository_owner }}
-          GIT_REPO_SLUG: ${{ github.event.repository.name }}
-          CONTENT_ROOT_PATH: 'study-content'
-        run: |
-          node scripts/sync.mjs
 
       # 7. SSH 터널 종료 (필수)
       # if: always()는 6단계 스크립트가 실패하더라도 항상 이 단계를 실행시킵니다.
