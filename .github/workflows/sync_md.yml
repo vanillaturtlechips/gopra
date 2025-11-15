@@ -80,21 +80,21 @@ jobs:
           # 'frontend/scripts/sync.mjs' 파일이 존재한다고 가정
           # 이 스크립트는 'localhost'로 접속하도록 수정되어야 합니다.
           node frontend/scripts/sync.mjs
-      
-      # (참고) 예: Python 스크립트 실행
-      # - name: Set up Python
-      #   uses: actions/setup-python@v5
-      #   with:
-      #     python-version: '3.10'
-      #
-      # - name: Install Python dependencies
-      #   run: pip install psycopg2-binary
-      #
-      # - name: Run DB Sync Script (Python)
-      #   env:
-      #     POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
-      #   run: |
-      #     python scripts/sync_db.py
+
+      - name: Install Node.js dependencies
+        working-directory: ./frontend
+        run: npm install
+
+
+      - name: Run DB Sync Script (Node.js)
+        working-directory: ./frontend
+        env:
+          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+          GIT_REPO_OWNER: ${{ github.repository_owner }}
+          GIT_REPO_SLUG: ${{ github.event.repository.name }}
+          CONTENT_ROOT_PATH: 'study-content'
+        run: |
+          node scripts/sync.mjs
 
       # 7. SSH 터널 종료 (필수)
       # if: always()는 6단계 스크립트가 실패하더라도 항상 이 단계를 실행시킵니다.
