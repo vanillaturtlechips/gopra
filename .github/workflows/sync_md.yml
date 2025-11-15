@@ -1,0 +1,106 @@
+name: Sync MD Content to DB
+
+on:
+  push:
+    # 'main' 또는 'master' 브랜치의 'study-content/' 폴더 내 파일에
+    # 변경 사항이 푸시될 때만 이 워크플로우를 실행합니다.
+    branches:
+      - main # (사용자의 기본 브랜치 이름으로 변경하세요: main, master 등)
+    paths:
+      - 'study-content/**.md'
+
+jobs:
+  sync-to-db:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 1. 레포지토리 코드 체크아웃
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. SSH Private Key 로드
+      # GitHub Secrets에 저장된 SSH_PRIVATE_KEY를 ssh-agent에 로드합니다.
+      - name: Load SSH Private Key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      # 3. SSH 터널 생성 (백그라운드 실행)
+      # GitHub Runner의 5432 포트 요청을 SSH 터널을 통해
+      # VPS(secrets.SSH_HOST)의 'localhost:5432'로 전달합니다.
+      - name: Create SSH Tunnel
+        run: |
+          # SSH 호스트 키를 자동으로 수락하여 프롬프트를 방지합니다.
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+          
+          # -N: 원격 명령 실행 안 함 (터널 전용)
+          # -L: 로컬 포트 포워딩 (localhost:5432 -> VPS:localhost:5432)
+          # -f: 백그라운드 실행
+          ssh -f -N -L 5432:localhost:5432 ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}
+          
+          echo "SSH 터널 생성 시도 완료. 5초 대기..."
+          sleep 5 # 터널이 안정적으로 열릴 때까지 잠시 대기
+
+      # 4. PostgreSQL 클라이언트 설치
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      # 5. SSH 터널을 통한 DB 연결 테스트
+      # POSTGRES_URL Secret 대신 비밀번호만 따로 Secret으로 관리하는 것이 더 안전할 수 있습니다.
+      # 여기서는 main.go의 기본값을 기준으로 PGPASSWORD를 사용합니다.
+      - name: Test DB Connection via Tunnel
+        env:
+          # main.go의 'gopra_pass' 기준
+          # 이 비밀번호도 GitHub Secret으로 관리하는 것을 강력히 권장합니다.
+          PGPASSWORD: ${{ secrets.DB_PASSWORD }} # (예: 'gopra_pass'를 Secret으로 등록)
+        run: |
+          psql -h localhost -p 5432 -U gopra_user -d gopra_db -c "SELECT version();"
+          echo "DB 연결 테스트 성공!"
+
+      # -----------------------------------------------------------------
+      # 6. (중요) 실제 DB 동기화 스크립트 실행
+      # -----------------------------------------------------------------
+      # 
+      # Node.js + (npm install pg) 또는 Python + (pip install psycopg2) 등
+      # 사용자가 선호하는 언어로 스크립트를 작성하고 여기서 실행해야 합니다.
+      # 이 스크립트는 변경된 .md 파일을 파싱하고 DB에 INSERT/UPDATE를 수행합니다.
+      
+      # 예: Node.js (mjs) 스크립트 실행
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # 또는 '18'
+
+      - name: Run DB Sync Script (Node.js)
+        env:
+          # 스크립트가 이 환경 변수를 읽어 'localhost'로 접속하도록 해야 합니다.
+          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+        run: |
+          # (필요시 npm install pg)
+          # 'frontend/scripts/sync.mjs' 파일이 존재한다고 가정
+          # 이 스크립트는 'localhost'로 접속하도록 수정되어야 합니다.
+          node frontend/scripts/sync.mjs
+      
+      # (참고) 예: Python 스크립트 실행
+      # - name: Set up Python
+      #   uses: actions/setup-python@v5
+      #   with:
+      #     python-version: '3.10'
+      #
+      # - name: Install Python dependencies
+      #   run: pip install psycopg2-binary
+      #
+      # - name: Run DB Sync Script (Python)
+      #   env:
+      #     POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+      #   run: |
+      #     python scripts/sync_db.py
+
+      # 7. SSH 터널 종료 (필수)
+      # if: always()는 6단계 스크립트가 실패하더라도 항상 이 단계를 실행시킵니다.
+      - name: Close SSH Tunnel
+        if: always()
+        run: |
+          echo "SSH 터널 종료 중..."
+          # 백그라운드에서 실행 중인 모든 ssh 포트 포워딩 프로세스를 종료합니다.
+          pkill -f "ssh -f -N -L 5432:localhost:5432"
