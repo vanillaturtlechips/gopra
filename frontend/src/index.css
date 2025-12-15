@@ -1,63 +1,24 @@
-/* Tailwind CSS v4 설정 */
-@import "tailwindcss";
-
-/* 커스텀 테마 설정 (폰트, 애니메이션) */
-@theme {
-  /* 폰트 정의 */
-  --font-sans: "Inter", sans-serif;
-  --font-heading: "Outfit", sans-serif;
-
-  /* 애니메이션 정의 */
-  --animate-blob: blob 7s infinite;
-  --animate-fade-in-up: fadeInUp 0.5s ease-out forwards;
-
-  @keyframes blob {
-    0% { transform: translate(0px, 0px) scale(1); }
-    33% { transform: translate(30px, -50px) scale(1.1); }
-    66% { transform: translate(-20px, 20px) scale(0.9); }
-    100% { transform: translate(0px, 0px) scale(1); }
-  }
-
-  @keyframes fadeInUp {
-    0% { opacity: 0; transform: translateY(20px); }
-    100% { opacity: 1; transform: translateY(0); }
-  }
-}
-
-/* 기본 스타일 */
-@layer base {
-  body {
-    background-color: #0a0a0a;
-    color: #e5e7eb;
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-    font-family: var(--font-sans);
-  }
-  
-  /* 스크롤바 커스텀 */
-  ::-webkit-scrollbar {
-    width: 8px;
-  }
-  ::-webkit-scrollbar-track {
-    background: #0a0a0a; 
-  }
-  ::-webkit-scrollbar-thumb {
-    background: #333; 
-    border-radius: 4px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: #555; 
-  }
-}
-
-/* 유틸리티 클래스 (필요시) */
-.lanyard-wrapper {
-  position: relative;
-  z-index: 0;
-  width: 100%;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png+xml" href="/myong12.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Myong12</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+      body {
+        background-color: #0a0a0a;
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -202,8 +202,8 @@ export default function App() {
     { label: 'Contact', ariaLabel: 'Go to Contact section', link: '#contact' },
   ];
   
-  const GITHUB_URL = "https://github.com/your-github";
-  const socialItems = [{ label: 'GitHub', link: GITHUB_URL }, { label: 'LinkedIn', link: 'https://linkedin.com/in/your-linkedin' }];
+  const GITHUB_URL = "https://github.com/vanillaturtlechips";
+  const socialItems = [{ label: 'GitHub', link: GITHUB_URL }, { label: 'LinkedIn', link: 'https://www.linkedin.com/in/%EB%AA%85%EC%9D%BC-%EC%9D%B4-342075399/' }];
   const categoryImages: Record<string, string> = {
     'devops': 'https://images.unsplash.com/photo-1667372393119-c81c0e83039d?q=80&w=2000&auto=format&fit=crop',
     'GOlang': 'https://images.unsplash.com/photo-1649180556628-9ba704115795?q=80&w=2000&auto=format&fit=crop',
@@ -266,7 +266,7 @@ export default function App() {
                 </div>
 
                 <p className="text-xl md:text-2xl text-gray-400 max-w-2xl leading-relaxed font-light mb-12">
-                  새로운 기술을 만날 때마다 심장이 뛰는 개발자입니다. 
+                  견고한 시스템을 구축하는 걸 업으로 삼은 엔지니어입니다.
                   <strong className="text-white font-medium"> 보안 관제</strong>에서 시작된 호기심을 
                   <strong className="text-white font-medium"> 클라우드 아키텍처</strong>와 
                   <strong className="text-white font-medium"> 자동화</strong>로 확장시켰습니다.
@@ -476,7 +476,7 @@ export default function App() {
                   <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="p-4 rounded-full bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:-translate-y-1 transition-all">
                     <Github size={24} />
                   </a>
-                  <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="p-4 rounded-full bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:-translate-y-1 transition-all">
+                  <a href="https://www.linkedin.com/in/%EB%AA%85%EC%9D%BC-%EC%9D%B4-342075399/" target="_blank" rel="noreferrer" className="p-4 rounded-full bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:-translate-y-1 transition-all">
                     <Linkedin size={24} />
                   </a>
                 </div>
