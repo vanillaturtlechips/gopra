@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import type { ReactNode } from 'react'; // ✅ 수정됨: 타입은 이렇게 따로 import 해야 오류가 안 납니다.
+import type { ReactNode } from 'react';
 import Aurora from './components/Aurora';
 import './components/Aurora.css';
 import StaggeredMenu from './components/StaggeredMenu';
@@ -8,9 +8,9 @@ import { Github, Check, Mail, ArrowRight, Linkedin, Terminal, Cpu, Globe, Code2 
 import { 
   SiGo, SiNextdotjs, SiNodedotjs, SiPython, SiTypescript, 
   SiDocker, SiKubernetes, SiArgo, SiHelm, SiGithubactions, 
-  SiTerraform 
-} from "react-icons/si";
-import { FaAws } from "react-icons/fa";
+  SiTerraform, SiRust, SiOracle 
+} from "react-icons/si"; 
+import { FaAws, FaBeer } from "react-icons/fa";
 import { VscShield } from "react-icons/vsc";
 
 // --- Types ---
@@ -27,9 +27,6 @@ function normalizeCategory(category: string): string {
   return category.toLowerCase().replace(/[\s-]/g, '');
 }
 
-// --- Components ---
-
-// [최적화] 마우스 스포트라이트 (별도 컴포넌트로 분리하여 성능 저하 방지)
 const MouseSpotlight = () => {
   const divRef = useRef<HTMLDivElement>(null);
 
@@ -103,17 +100,20 @@ export default function App() {
 
   const skills = [
     { name: 'GoLang', icon: <SiGo />, color: '#00ADD8', category: 'Languages' },
+    { name: 'Rust', icon: <SiRust />, color: '#DEA584', category: 'Languages' },
     { name: 'Python', icon: <SiPython />, color: '#3776AB', category: 'Languages' },
     { name: 'TypeScript', icon: <SiTypescript />, color: '#3178C6', category: 'Languages' },
     { name: 'Node.js', icon: <SiNodedotjs />, color: '#339933', category: 'Languages' },
     { name: 'Next.js', icon: <SiNextdotjs />, color: '#ffffff', category: 'Languages' },
     
     { name: 'AWS', icon: <FaAws />, color: '#FF9900', category: 'Cloud & Infra' },
+    { name: 'Oracle Cloud', icon: <SiOracle />, color: '#F80000', category: 'Cloud & Infra' },
     { name: 'Terraform', icon: <SiTerraform />, color: '#7B42BC', category: 'Cloud & Infra' },
     { name: 'Docker', icon: <SiDocker />, color: '#2496ED', category: 'Cloud & Infra' },
     { name: 'Kubernetes', icon: <SiKubernetes />, color: '#326CE5', category: 'Cloud & Infra' },
     { name: 'Helm Chart', icon: <SiHelm />, color: '#0F1689', category: 'Cloud & Infra' },
     
+    { name: 'eBPF', icon: <FaBeer />, color: '#EB5C1C', category: 'DevSecOps' }, // ✅ [수정됨] eBPF 아이콘 교체
     { name: 'ArgoCD', icon: <SiArgo />, color: '#EF7B4D', category: 'DevSecOps' },
     { name: 'GitHub Actions', icon: <SiGithubactions />, color: '#2088FF', category: 'DevSecOps' },
     { name: 'Semgrep', icon: <VscShield />, color: '#358A7F', category: 'DevSecOps' },
@@ -215,7 +215,6 @@ export default function App() {
 
   return (
     <>
-      {/* 1. 최적화된 마우스 효과 (깜빡임 원인 제거됨) */}
       <MouseSpotlight />
       
       <div className="fixed inset-0 z-[-2] w-full h-full bg-[#0a0a0a]" />
@@ -266,7 +265,7 @@ export default function App() {
                 </div>
 
                 <p className="text-xl md:text-2xl text-gray-400 max-w-2xl leading-relaxed font-light mb-12">
-                  견고한 시스템을 구축하는 걸 업으로 삼은 엔지니어입니다.
+                  새로운 기술을 만날 때마다 심장이 뛰는 개발자입니다. 
                   <strong className="text-white font-medium"> 보안 관제</strong>에서 시작된 호기심을 
                   <strong className="text-white font-medium"> 클라우드 아키텍처</strong>와 
                   <strong className="text-white font-medium"> 자동화</strong>로 확장시켰습니다.
@@ -476,7 +475,7 @@ export default function App() {
                   <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="p-4 rounded-full bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:-translate-y-1 transition-all">
                     <Github size={24} />
                   </a>
-                  <a href="https://www.linkedin.com/in/%EB%AA%85%EC%9D%BC-%EC%9D%B4-342075399/" target="_blank" rel="noreferrer" className="p-4 rounded-full bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:-translate-y-1 transition-all">
+                  <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="p-4 rounded-full bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:-translate-y-1 transition-all">
                     <Linkedin size={24} />
                   </a>
                 </div>
