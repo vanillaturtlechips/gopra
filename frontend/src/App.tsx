@@ -22,6 +22,10 @@ interface Post {
   linkUrl: string;
 }
 
+// --- Constants ---
+// ✅ [수정 1] Aurora 색상 배열을 컴포넌트 외부 상수로 분리 (리렌더링 시 깜빡임 방지)
+const AURORA_COLORS = ["#3A29FF", "#FF94B4", "#FF3232"];
+
 // --- Helper Functions ---
 function normalizeCategory(category: string): string {
   return category.toLowerCase().replace(/[\s-]/g, '');
@@ -113,7 +117,7 @@ export default function App() {
     { name: 'Kubernetes', icon: <SiKubernetes />, color: '#326CE5', category: 'Cloud & Infra' },
     { name: 'Helm Chart', icon: <SiHelm />, color: '#0F1689', category: 'Cloud & Infra' },
     
-    { name: 'eBPF', icon: <FaBeer />, color: '#EB5C1C', category: 'DevSecOps' }, // ✅ [수정됨] eBPF 아이콘 교체
+    { name: 'eBPF', icon: <FaBeer />, color: '#EB5C1C', category: 'DevSecOps' },
     { name: 'ArgoCD', icon: <SiArgo />, color: '#EF7B4D', category: 'DevSecOps' },
     { name: 'GitHub Actions', icon: <SiGithubactions />, color: '#2088FF', category: 'DevSecOps' },
     { name: 'Semgrep', icon: <VscShield />, color: '#358A7F', category: 'DevSecOps' },
@@ -220,7 +224,7 @@ export default function App() {
       <div className="fixed inset-0 z-[-2] w-full h-full bg-[#0a0a0a]" />
 
       <Aurora
-        colorStops={["#3A29FF", "#FF94B4", "#FF3232"]} 
+        colorStops={AURORA_COLORS} // ✅ [수정 1] 상수로 선언된 배열 전달
         amplitude={1.0}
         speed={0.2}
         blend={0.5}
@@ -387,7 +391,8 @@ export default function App() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredProjects.map((project, index) => (
                   <FadeInSection delay={index * 100} key={project.title}>
-                    <a href="#" className="group relative block h-full bg-gray-900/40 border border-white/5 rounded-3xl overflow-hidden backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-indigo-500/30 hover:shadow-[0_10px_40px_-10px_rgba(79,70,229,0.2)]">
+                    {/* ✅ [수정 2] a href="#" 대신 div로 변경하여 스크롤 튀는 현상 방지 */}
+                    <div className="group relative block h-full bg-gray-900/40 border border-white/5 rounded-3xl overflow-hidden backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-indigo-500/30 hover:shadow-[0_10px_40px_-10px_rgba(79,70,229,0.2)] cursor-pointer">
                       <div className="p-8 h-full flex flex-col">
                         <div className="mb-6 p-4 bg-white/5 rounded-2xl w-fit text-indigo-400 group-hover:text-white group-hover:bg-indigo-600 transition-colors duration-300">
                           {project.icon || <Code2 size={32} />}
@@ -402,7 +407,7 @@ export default function App() {
                           ))}
                         </div>
                       </div>
-                    </a>
+                    </div>
                   </FadeInSection>
                 ))}
               </div>
