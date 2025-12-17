@@ -23,7 +23,7 @@ interface Post {
 }
 
 // --- Constants ---
-// ✅ [수정 1] Aurora 색상 배열을 컴포넌트 외부 상수로 분리 (리렌더링 시 깜빡임 방지)
+// ✅ [수정 1] 배경 깜빡임 방지를 위해 색상 배열을 컴포넌트 외부로 분리
 const AURORA_COLORS = ["#3A29FF", "#FF94B4", "#FF3232"];
 
 // --- Helper Functions ---
@@ -91,7 +91,6 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   
-  // 타이핑 효과 텍스트 (간단화)
   const typeWriterText = "DevSecOps Engineer"; 
 
   const [selectedStudyCategory, setSelectedStudyCategory] = useState('All'); 
@@ -128,6 +127,96 @@ export default function App() {
     ? skills 
     : skills.filter(s => s.category === activeSkillTab);
   
+  // ✅ [추가] 핵심 역량 (Core Competencies) 데이터
+  const coreCompetencies = [
+    {
+      id: 1,
+      title: "Hybrid Cloud Architecture",
+      subtitle: "확장 가능한 하이브리드 클라우드",
+      desc: "3-Tier 온프레미스 환경과 AWS EKS를 연동하여, 유연하고 확장성 높은 하이브리드 클라우드 인프라를 주도적으로 설계하고 구축할 수 있습니다.",
+      icon: <SiKubernetes size={40} className="text-blue-500" />,
+    },
+    {
+      id: 2,
+      title: "Deep Observability",
+      subtitle: "eBPF 기반 심층 관측성",
+      desc: "단순 모니터링을 넘어, eBPF 기술을 활용해 커널 레벨에서 시스템 성능을 분석하고 병목 구간을 디버깅하는 애플리케이션을 개발했습니다.",
+      icon: <FaBeer size={40} className="text-orange-500" />,
+    },
+    {
+      id: 3,
+      title: "DevSecOps Platform",
+      subtitle: "보안 내재화 및 DX 향상",
+      desc: "Security-by-Design 원칙을 적용하고 개발자 경험(DX)을 최우선으로 고려한 통합 개발자 플랫폼을 개발하였습니다.",
+      icon: <VscShield size={40} className="text-green-500" />,
+    },
+    {
+      id: 4,
+      title: "Infrastructure as Code",
+      subtitle: "선언적 인프라 자동화",
+      desc: "Terraform과 Helm을 사용하여 인프라를 코드로 관리(IaC)하며, 환경 일관성 보장 및 배포 자동화를 구현하였습니다  .",
+      icon: <SiTerraform size={40} className="text-purple-500" />,
+    },
+  ];
+
+  // ✅ [수정] 활동 내역 (Key Activities) - 국문 버전 적용
+const experiences = [
+  {
+    date: '2025.09 - 2026.04',
+    title: 'AWS Cloud School',
+    company: '한국전파진흥원',
+    description: 'AWS에서 주관하는 부트캠프에 참여하였습니다.',
+    tasks: [
+      '온프레미스와 클라우드를 연결해보며, 레거시 환경과 현대적 아키텍처가 공존할 때 발생하는 복잡성과 해결 방안을 확인했습니다..',
+      '보안이 개발의 걸림돌이 아닌 가속 페달이 되기 위해서는 "보이지 않는 보안(Invisible Security)"이 플랫폼에 녹아들어야 함을 깨달았습니다.',
+      '인프라를 코드로 관리(IaC)하는 과정에서, 휴먼 에러를 줄이고 운영의 일관성을 지키는 것이 엔지니어링의 핵심 책임임을 배웠습니다.',
+    ]
+  },
+  {
+    date: '2025.11',
+    title: 'SoftBank Hackathon (Creating the future with cloud)',
+    company: 'SoftBank',
+    description: '즐거운 배포라는 주제의 해커톤에 참여하여 짧은 시간 안에 아이디어를 실제 서비스로 구현했습니다.',
+    tasks: [
+      '이상적인 아키텍처와 현실적인 마감 기한 사이에서, MVP를 위한 최적의 인프라 스펙을 결정하며 트레이드오프(Trade-off)를 조율하는 감각을 익혔습니다.',
+      '개발자들이 인프라 걱정 없이 로직에만 집중할 수 있는 환경을 만들어주었을 때, 팀 전체의 생산성이 폭발적으로 증가하는 것을 확인했습니다.',
+      '즐거운 배포라는 것은 개발자 입장이 아닌 사용자 입장도 중요하단 사실을 이번 활동을 통해 깨달았습니다.'
+    ]
+  },
+  {
+    date: '2025.07 - 현재',
+    title: 'Cloudbro Open Project',
+    company: 'Cloudbro',
+    description: '현업 SRE 엔지니어들과 함께하며, Cloudbro Open Project 2기에 활동하였습니다.',
+    tasks: [
+      'Rust와 eBPF라는 생소한 기술과 씨름하며, 로우 레벨(Low-level) 데이터가 어떻게 상위 레벨의 인사이트로 변환되는지 그 데이터의 흐름을 이해하게 되었습니다.',
+      'Helm Chart를 직접 설계하면서, "내가 작성한 코드는 결국 다른 동료가 사용하는 인터페이스(UI)"라는 마음가짐으로 사용자 경험(DX)을 고민하게 되었습니다.',
+      '오픈소스 표준(OpenTelemetry)을 준수하는 것이 장기적인 유지보수성과 생태계 확장에 얼마나 필수적인 요소인지 깨닫는 계기가 되었습니다.',
+    ]
+  },
+  {
+    date: '2025.02 - 2025.06',
+    title: 'Security Academy education program',
+    company: 'KISIA',
+    description: 'KISIA에서 진행하는 교육 프로그램에 참여하면서 엔지니어에 대한 마인드셋을 확립하였습니다.',
+    tasks: [
+      '보안 도구(Trivy, Semgrep)를 파이프라인에 심으면서, 개발 속도를 저해하지 않으면서도 안전을 지키는 아키텍처를 고민했습니다.',
+      '수동 배포의 불안함을 GitOps(ArgoCD)로 해결하며, 코드로 관리되는 인프라가 주는 운영 효율성을 체험했습니다.',
+      '개발자가 인프라 팀을 거치지 않고도 주도적으로 서비스를 배포할 수 있는 환경을 구축하며, 플랫폼 엔지니어링이 나아가야 할 방향성을 확립했습니다.',
+    ]
+  },
+  {
+    date: '2025.01 - 현재',
+    title: 'Open Source Contributor & Study',
+    company: 'OWASP',
+    description: '혼자만의 공부에 그치지 않고, 글로벌 보안 커뮤니티와 호흡하며 지식을 나누고 확장하는 즐거움을 배우고 있습니다.',
+    tasks: [
+      '파편화된 DevSecOps 지식들을 정리하고 문서화하면서, 내가 아는 것을 남이 이해할 수 있게 설명하는 능력의 중요성을 배웠습니다.',
+      '이론으로만 존재하던 글로벌 보안 표준들이 실제 현업 환경에서는 어떻게 변형되고 적용되어야 하는지, 그 간극을 메우는 방법을 배우고 있습니다.',
+    ]
+  },
+];
+
   const fetchPosts = () => {
     setIsLoading(true);
     fetch('/api/posts')
@@ -148,7 +237,7 @@ export default function App() {
   useEffect(() => { fetchPosts(); }, []);
 
   const handleCopyEmail = () => {
-    navigator.clipboard.writeText("your-email@example.com");
+    navigator.clipboard.writeText("wkdqkdgud@gmail.com");
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -157,19 +246,6 @@ export default function App() {
     ? posts
     : posts.filter(post => normalizeCategory(post.category) === normalizeCategory(selectedStudyCategory));
   
-  const experiences = [
-    {
-      date: 'Sep 2025 - Present',
-      title: 'DevOps Independent Projects',
-      company: 'Self-Driven Projects • Remote',
-      description: 'Building scalable infrastructure and automated pipelines.',
-      tasks: [
-        'Architecting CI/CD pipelines reducing deployment time by 40% using GitHub Actions',
-        'Orchestrating microservices with Kubernetes & Helm for high availability',
-        'Implementing Infrastructure as Code (IaC) with Terraform regarding AWS best practices',
-      ]
-    },
-  ];
 
   const [selectedProjectCategory, setSelectedProjectCategory] = useState('All');
   const projectCategories = ['All', 'AWS', 'Terraform', 'Docker', 'Kubernetes', 'Go', 'React'];
@@ -199,8 +275,10 @@ export default function App() {
 
   const menuItems = [
     { label: 'About', ariaLabel: 'Go to About section', link: '#about' },
+    // ✅ [추가] 메뉴에 Core(역량) 섹션 추가
+    { label: 'Core', ariaLabel: 'Go to Competencies section', link: '#competencies' },
     { label: 'Skills', ariaLabel: 'Go to Skills section', link: '#skills' },
-    { label: 'Experience', ariaLabel: 'Go to Experience section', link: '#experience' },
+    { label: 'Activity', ariaLabel: 'Go to Experience section', link: '#experience' }, // Experience -> Activity로 명칭 변경 제안
     { label: 'Projects', ariaLabel: 'Go to Projects section', link: '#projects' },
     { label: 'Study', ariaLabel: 'Go to Study section', link: '#study' },
     { label: 'Contact', ariaLabel: 'Go to Contact section', link: '#contact' },
@@ -224,7 +302,7 @@ export default function App() {
       <div className="fixed inset-0 z-[-2] w-full h-full bg-[#0a0a0a]" />
 
       <Aurora
-        colorStops={AURORA_COLORS} // ✅ [수정 1] 상수로 선언된 배열 전달
+        colorStops={AURORA_COLORS} // ✅ 상수 전달로 리렌더링 시 깜빡임 방지
         amplitude={1.0}
         speed={0.2}
         blend={0.5}
@@ -269,7 +347,7 @@ export default function App() {
                 </div>
 
                 <p className="text-xl md:text-2xl text-gray-400 max-w-2xl leading-relaxed font-light mb-12">
-                  새로운 기술을 만날 때마다 심장이 뛰는 개발자입니다. 
+                  플랫폼이 안정적으로 구축될때 행복한 엔지니어입니다. 
                   <strong className="text-white font-medium"> 보안 관제</strong>에서 시작된 호기심을 
                   <strong className="text-white font-medium"> 클라우드 아키텍처</strong>와 
                   <strong className="text-white font-medium"> 자동화</strong>로 확장시켰습니다.
@@ -290,6 +368,38 @@ export default function App() {
             <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce text-gray-500">
                <span className="text-xs uppercase tracking-widest">Scroll</span>
             </div>
+          </section>
+
+          {/* Core Competencies Section */}
+          <section id="competencies" className="min-h-screen pt-32">
+            <FadeInSection>
+              <div className="mb-16">
+                <h2 className="text-5xl md:text-6xl font-bold text-white mb-6 font-heading">
+                  Core Competencies
+                </h2>
+                <p className="text-xl text-gray-400 max-w-2xl">
+                  시스템의 깊은 곳부터 클라우드 아키텍처까지, 저를 정의하는 핵심 역량입니다.
+                </p>
+              </div>
+
+              {/* 역량 카드 그리드 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {coreCompetencies.map((item, idx) => (
+                  <FadeInSection key={item.id} delay={idx * 100}>
+                    <div className="h-full p-8 rounded-3xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-indigo-500/30 transition-all duration-300 group">
+                      <div className="mb-6 p-4 bg-black/30 rounded-2xl w-fit border border-white/5 group-hover:scale-110 transition-transform duration-300">
+                        {item.icon}
+                      </div>
+                      <h3 className="text-2xl font-bold text-white mb-1">{item.title}</h3>
+                      <p className="text-indigo-400 font-medium mb-4">{item.subtitle}</p>
+                      <p className="text-gray-400 leading-relaxed text-lg">
+                        {item.desc}
+                      </p>
+                    </div>
+                  </FadeInSection>
+                ))}
+              </div>
+            </FadeInSection>
           </section>
 
           {/* Skills Section */}
@@ -337,25 +447,37 @@ export default function App() {
             </FadeInSection>
           </section>
 
-          {/* Experience Section */}
-          <section id="experience" className="min-h-screen pt-32">
+          {/* ✅ [수정] Key Activities Section (구 Experience) */}
+          <section id="experience" className="min-h-[80vh] pt-32">
             <FadeInSection>
-              <h2 className="text-5xl md:text-6xl font-bold text-white mb-16 font-heading">Experience</h2>
+              <h2 className="text-5xl md:text-6xl font-bold text-white mb-16 font-heading">
+                Key Activities
+              </h2>
               <div className="space-y-12 border-l border-white/10 ml-4 pl-12 relative">
                 {experiences.map((exp, index) => (
                   <div key={index} className="relative">
+                    {/* 타임라인 점 */}
                     <div className="absolute -left-[53px] top-2 w-5 h-5 rounded-full bg-indigo-500 border-4 border-[#0a0a0a] shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
+                    
+                    {/* 날짜 뱃지 */}
                     <span className="inline-block px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-sm font-medium mb-2 border border-indigo-500/20">
                       {exp.date}
                     </span>
+
+                    {/* 제목 및 설명 */}
                     <h3 className="text-3xl font-bold text-white mb-1">{exp.title}</h3>
                     <p className="text-lg text-gray-400 mb-4">{exp.company}</p>
                     <p className="text-gray-500 mb-6 max-w-2xl">{exp.description}</p>
-                    <ul className="space-y-3">
+
+                    {/* 활동 리스트 (Bullet Points) */}
+                    <ul className="space-y-4">
                       {exp.tasks.map((task, i) => (
-                        <li key={i} className="flex items-start text-gray-400 group">
-                          <span className="mr-3 mt-1.5 w-1.5 h-1.5 rounded-full bg-gray-600 group-hover:bg-indigo-400 transition-colors" />
-                          <span className="group-hover:text-gray-300 transition-colors">{task}</span>
+                        <li key={i} className="flex items-start text-gray-300 group">
+                          {/* 화살표 아이콘으로 교체하여 활동성 강조 */}
+                          <ArrowRight className="mr-3 mt-1.5 min-w-[16px] text-indigo-500 group-hover:translate-x-1 transition-transform" size={16} />
+                          <span className="text-lg leading-relaxed group-hover:text-white transition-colors">
+                            {task}
+                          </span>
                         </li>
                       ))}
                     </ul>
@@ -391,7 +513,7 @@ export default function App() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredProjects.map((project, index) => (
                   <FadeInSection delay={index * 100} key={project.title}>
-                    {/* ✅ [수정 2] a href="#" 대신 div로 변경하여 스크롤 튀는 현상 방지 */}
+                    {/* ✅ [수정] 스크롤 튀는 현상 방지를 위해 a href="#" 제거하고 div로 변경 */}
                     <div className="group relative block h-full bg-gray-900/40 border border-white/5 rounded-3xl overflow-hidden backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-indigo-500/30 hover:shadow-[0_10px_40px_-10px_rgba(79,70,229,0.2)] cursor-pointer">
                       <div className="p-8 h-full flex flex-col">
                         <div className="mb-6 p-4 bg-white/5 rounded-2xl w-fit text-indigo-400 group-hover:text-white group-hover:bg-indigo-600 transition-colors duration-300">
@@ -473,7 +595,7 @@ export default function App() {
                   className="relative px-8 py-4 bg-white text-black rounded-full font-bold text-lg hover:bg-gray-200 transition-all flex items-center gap-3"
                 >
                   {copied ? <Check size={20} /> : <Mail size={20} />}
-                  {copied ? "Email Copied!" : "your-email@example.com"}
+                  {copied ? "Email Copied!" : "wkdqkdgud@gmail.com"}
                 </button>
                 
                 <div className="flex gap-4">
