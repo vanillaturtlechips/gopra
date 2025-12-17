@@ -14,8 +14,7 @@ import {
   SiDocker, SiKubernetes, SiArgo, SiHelm, SiGithubactions, 
   SiTerraform, SiRust, SiOracle, SiSpring, SiMysql, SiGnubash, SiWireshark, SiKalilinux, SiTauri, SiSqlite
 } from "react-icons/si"; 
-import { FaAws, FaBeer, FaLinux } from "react-icons/fa";
-import { VscShield } from "react-icons/vsc";
+import { FaAws, FaLinux } from "react-icons/fa";
 
 // --- Types ---
 interface Post {
@@ -45,12 +44,11 @@ interface ProjectMedia {
   caption?: string;   
 }
 
-// ✅ [Update] Project Type 추가 (Team | Side)
 type ProjectType = 'Team' | 'Side';
 
 interface Project {
   title: string;
-  projectType: ProjectType; // ✅ 구분 필드 추가
+  projectType: ProjectType;
   description: string;
   detailedDescription: string;
   architectureImage?: string; 
@@ -199,7 +197,6 @@ const ProjectModal = ({ project, onClose }: { project: Project, onClose: () => v
               
               <div className="absolute bottom-0 left-0 w-full p-8 bg-gradient-to-t from-[#0d1117] via-[#0d1117]/80 to-transparent">
                 <div className="flex items-center gap-3 mb-2">
-                   {/* 모달 내부 타이틀 위에도 뱃지 표시 */}
                    <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
                       project.projectType === 'Team' 
                       ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' 
@@ -319,7 +316,8 @@ const ProjectModal = ({ project, onClose }: { project: Project, onClose: () => v
                 {project.problemSolving && project.problemSolving.length > 0 && (
                   <div className="rounded-2xl bg-[#161b22] border border-white/5 overflow-hidden">
                     <div className="p-4 bg-[#1f2430] border-b border-white/5 flex items-center gap-2">
-                        <VscShield className="text-indigo-400" size={20} />
+                        {/* 쉴드 아이콘 대체 (Trivy 이미지) */}
+                        <img src="/images/trivy.png" alt="Troubleshooting" className="w-5 h-5 object-contain" />
                         <span className="text-sm font-bold text-gray-300">Troubleshooting Cases ({project.problemSolving.length})</span>
                     </div>
                     
@@ -442,6 +440,7 @@ export default function App() {
   const [activeSkillTab, setActiveSkillTab] = useState('All');
   const skillCategories = ['All', 'Languages', 'Cloud & Infra', 'DevSecOps'];
 
+  // ✅ [Updated] 아이콘을 /images/ 폴더의 PNG 파일로 교체 (Trivy, Semgrep, eBPF)
   const skills = [
     { name: 'GoLang', icon: <SiGo />, color: '#00ADD8', category: 'Languages' },
     { name: 'Rust', icon: <SiRust />, color: '#DEA584', category: 'Languages' },
@@ -457,11 +456,28 @@ export default function App() {
     { name: 'Kubernetes', icon: <SiKubernetes />, color: '#326CE5', category: 'Cloud & Infra' },
     { name: 'Helm Chart', icon: <SiHelm />, color: '#0F1689', category: 'Cloud & Infra' },
     
-    { name: 'eBPF', icon: <FaBeer />, color: '#EB5C1C', category: 'DevSecOps' },
+    // 👇 이미지를 사용하는 아이콘으로 변경
+    { 
+      name: 'eBPF', 
+      icon: <img src="/images/ebpf.png" alt="eBPF" className="w-12 h-12 object-contain" />, 
+      color: '#EB5C1C', 
+      category: 'DevSecOps' 
+    },
     { name: 'ArgoCD', icon: <SiArgo />, color: '#EF7B4D', category: 'DevSecOps' },
     { name: 'GitHub Actions', icon: <SiGithubactions />, color: '#2088FF', category: 'DevSecOps' },
-    { name: 'Semgrep', icon: <VscShield />, color: '#358A7F', category: 'DevSecOps' },
-    { name: 'Trivy', icon: <VscShield />, color: '#00A0E1', category: 'DevSecOps' },
+    // 👇 이미지를 사용하는 아이콘으로 변경
+    { 
+      name: 'Semgrep', 
+      icon: <img src="/images/semgrep.png" alt="Semgrep" className="w-12 h-12 object-contain" />, 
+      color: '#358A7F', 
+      category: 'DevSecOps' 
+    },
+    { 
+      name: 'Trivy', 
+      icon: <img src="/images/trivy.png" alt="Trivy" className="w-12 h-12 object-contain" />, 
+      color: '#00A0E1', 
+      category: 'DevSecOps' 
+    },
     { name: 'Spring Cloud', icon: <SiSpring />, color: '#6DB33F', category: 'Cloud & Infra' },
   ];
 
@@ -482,14 +498,16 @@ export default function App() {
       title: "Deep Observability",
       subtitle: "eBPF 기반 심층 관측성",
       desc: "단순 모니터링을 넘어, eBPF 기술을 활용해 커널 레벨에서 시스템 성능을 분석하고 병목 구간을 디버깅하는 애플리케이션을 개발했습니다.",
-      icon: <FaBeer size={40} className="text-orange-500" />,
+      // 맥주 아이콘(FaBeer) -> eBPF 이미지로 변경
+      icon: <img src="/images/ebpf.png" alt="eBPF" className="w-10 h-10 object-contain" />, 
     },
     {
       id: 3,
       title: "DevSecOps Platform",
       subtitle: "보안 내재화 및 DX 향상",
       desc: "Security-by-Design 원칙을 적용하고 개발자 경험(DX)을 최우선으로 고려한 통합 개발자 플랫폼을 개발하였습니다.",
-      icon: <VscShield size={40} className="text-green-500" />,
+      // 방패 아이콘(VscShield) -> Trivy 이미지로 변경
+      icon: <img src="/images/trivy.png" alt="Trivy" className="w-10 h-10 object-contain" />,
     },
     {
       id: 4,
@@ -556,7 +574,8 @@ export default function App() {
       description: 'Rust와 eBPF 기반의 Kubernetes 환경을 위한 경량 관측성 플랫폼입니다.',
       detailedDescription: `기존 모니터링 도구(Sidecar 패턴 등)의 높은 리소스 오버헤드 문제를 해결하기 위해 eBPF(Extended Berkeley Packet Filter) 기술을 도입했습니다.\n\n커널 레벨에서 시스템 콜과 네트워크 패킷을 직접 추적하여 애플리케이션 수정 없이 깊이 있는 가시성을 제공하며, 수집된 데이터는 OpenTelemetry 표준을 준수하여 Grafana로 시각화됩니다.`,
       tags: ['Rust', 'eBPF', 'Kubernetes', 'Prometheus'],
-      icon: <FaBeer size={40} />,
+      // FaBeer 아이콘 -> eBPF 이미지로 변경
+      icon: <img src="/images/ebpf.png" alt="eBPF" className="w-10 h-10 object-contain" />,
       links: {
         docs: "https://honeybeepf.io",
       },
@@ -615,7 +634,8 @@ export default function App() {
       description: '보안 취약점 점검을 자동화하고 개발 프로세스에 통합한 DevSecOps 플랫폼입니다.',
       detailedDescription: `개발자가 코드를 푸시하는 순간부터 배포까지 보안 검사를 자동 수행하는 올인원 플랫폼입니다.\n\nNext.js로 개발된 사용자 대시보드에서 파이프라인 상태를 시각화하며, GitHub Actions와 연동하여 Trivy(이미지 스캔), Semgrep(코드 스캔) 결과를 리포팅합니다.`,
       tags: ['Next.js', 'DevSecOps', 'GitHub Actions', 'AWS'],
-      icon: <VscShield size={40} />,
+      // 방패 아이콘 -> Trivy 이미지로 변경
+      icon: <img src="/images/trivy.png" alt="Trivy" className="w-10 h-10 object-contain" />,
       links: {
         github: "https://github.com/GRPC-OK/Intellisia",
       },
@@ -810,11 +830,15 @@ export default function App() {
   
   const GITHUB_URL = "https://github.com/vanillaturtlechips";
   const socialItems = [{ label: 'GitHub', link: GITHUB_URL }, { label: 'LinkedIn', link: 'https://www.linkedin.com/in/%EB%AA%85%EC%9D%BC-%EC%9D%B4-342075399/' }];
+  
+  // ✅ [Updated] Unsplash 이미지 URL 수정 (Network 교체 완료)
   const categoryImages: Record<string, string> = {
-    'devops': 'https://images.unsplash.com/photo-1667372393119-c81c0e83039d?q=80&w=2000&auto=format&fit=crop',
+    'All': 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=2000&q=80',
+    'devops': 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=2000&q=80',
     'GOlang': 'https://images.unsplash.com/photo-1649180556628-9ba704115795?q=80&w=2000&auto=format&fit=crop',
     'DataBase': 'https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=2000&auto=format&fit=crop',
-    'Network': 'https://images.unsplash.com/photo-1558494949-efc53075a3bd?q=80&w=2000&auto=format&fit=crop',
+    // Network 이미지 교체: 데이터센터/서버 이미지로 변경
+    'Network': 'https://images.unsplash.com/photo-1558494949-efc53075a3bd?auto=format&fit=crop&w=2000&q=80',
     'Operating System': 'https://images.unsplash.com/photo-1629654297299-c8506221ca97?q=80&w=2000&auto=format&fit=crop',
     'Data Structure and Algorithm': 'https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=2000&auto=format&fit=crop'
   };
@@ -1061,7 +1085,8 @@ export default function App() {
                       {project.problemSolving && project.problemSolving.length > 0 && (
                         <div className="bg-[#161b22] border-t border-white/5 p-4 group hover:bg-[#1f2430] transition-colors">
                            <div className="flex items-center gap-2 mb-2">
-                              <VscShield className="text-indigo-400" size={16} />
+                              {/* 여기 쉴드도 교체 */}
+                              <img src="/images/trivy.png" alt="Troubleshooting" className="w-4 h-4 object-contain" />
                               <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Troubleshooting Case</span>
                            </div>
                            <p className="text-white font-bold text-sm flex items-center justify-between">
