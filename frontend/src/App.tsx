@@ -5,16 +5,16 @@ import './components/Aurora.css';
 import StaggeredMenu from './components/StaggeredMenu';
 import FlowingMenu from './components/FlowingMenu'; 
 import { 
-  Github, Check, Mail, ArrowRight, Linkedin, Terminal, Cpu, Globe, Code2, X, ExternalLink,
+  Github, Check, Mail, ArrowRight, Linkedin, Globe, Code2, X, ExternalLink,
   Lightbulb, AlertTriangle, Target, Wrench, Activity, CheckCircle, MessageSquareQuote, 
-  ArrowLeft, FileText, Layers, Play, Image as ImageIcon, Maximize2
+  ArrowLeft, FileText, Layers, Play, Maximize2, Shield, Search, Server, Network, Lock
 } from 'lucide-react';
 import { 
   SiGo, SiNextdotjs, SiNodedotjs, SiPython, SiTypescript, 
   SiDocker, SiKubernetes, SiArgo, SiHelm, SiGithubactions, 
-  SiTerraform, SiRust, SiOracle 
+  SiTerraform, SiRust, SiOracle, SiSpring, SiMysql, SiGnubash, SiWireshark, SiKalilinux, SiTauri, SiSqlite
 } from "react-icons/si"; 
-import { FaAws, FaBeer } from "react-icons/fa";
+import { FaAws, FaBeer, FaLinux } from "react-icons/fa";
 import { VscShield } from "react-icons/vsc";
 
 // --- Types ---
@@ -38,16 +38,19 @@ interface ProblemSolving {
   remarks: string;
 }
 
-// ✅ [추가] 미디어(이미지/영상) 타입 정의
 interface ProjectMedia {
   type: 'image' | 'video';
-  url: string;        // 이미지 경로 또는 유튜브 링크
-  thumbnail?: string; // 영상일 경우 보여줄 썸네일 이미지 (없으면 기본 아이콘)
-  caption?: string;   // 설명
+  url: string;        
+  thumbnail?: string; 
+  caption?: string;   
 }
+
+// ✅ [Update] Project Type 추가 (Team | Side)
+type ProjectType = 'Team' | 'Side';
 
 interface Project {
   title: string;
+  projectType: ProjectType; // ✅ 구분 필드 추가
   description: string;
   detailedDescription: string;
   architectureImage?: string; 
@@ -59,7 +62,6 @@ interface Project {
     docs?: string;
   };
   problemSolving?: ProblemSolving[];
-  // ✅ [추가] 갤러리 데이터
   gallery?: ProjectMedia[];
 }
 
@@ -128,17 +130,19 @@ const FadeInSection = ({ children, delay = 0 }: { children: ReactNode, delay?: n
 // --- Project Modal Component ---
 const ProjectModal = ({ project, onClose }: { project: Project, onClose: () => void }) => {
   const [view, setView] = useState<'overview' | 'troubleshooting'>('overview');
-  // ✅ [추가] 이미지 확대 보기(Lightbox)를 위한 상태
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+
+  const [activeProblem, setActiveProblem] = useState<ProblemSolving | null>(null);
 
   useEffect(() => {
     setView('overview');
     setLightboxImage(null);
+    setActiveProblem(null);
   }, [project]);
 
   if (!project) return null;
 
-  const solvingSteps = activeProblem => activeProblem ? [
+  const solvingSteps = (activeProblem: ProblemSolving | null) => activeProblem ? [
     { label: "1. 문제 정의", icon: <AlertTriangle size={20} className="text-red-400" />, content: activeProblem.problem, color: "border-red-500/50 text-red-400" },
     { label: "2. 원인 분석", icon: <Activity size={20} className="text-orange-400" />, content: activeProblem.cause, color: "border-orange-500/50 text-orange-400" },
     { label: "3. 측정 (심각성)", icon: <Target size={20} className="text-yellow-400" />, content: activeProblem.metric, color: "border-yellow-500/50 text-yellow-400" },
@@ -148,9 +152,6 @@ const ProjectModal = ({ project, onClose }: { project: Project, onClose: () => v
     { label: "7. 비고 및 회고", icon: <MessageSquareQuote size={20} className="text-purple-400" />, content: activeProblem.remarks, color: "border-purple-500/50 text-purple-400" },
   ] : [];
 
-  // ✅ [추가] 현재 선택된 트러블슈팅 케이스 상태
-  const [activeProblem, setActiveProblem] = useState<ProblemSolving | null>(null);
-
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
       <div 
@@ -158,7 +159,6 @@ const ProjectModal = ({ project, onClose }: { project: Project, onClose: () => v
         onClick={onClose}
       />
       
-      {/* ✅ [추가] Lightbox (이미지 확대 보기 모달) */}
       {lightboxImage && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/95 animate-in fade-in duration-200" onClick={() => setLightboxImage(null)}>
           <button className="absolute top-6 right-6 text-white/70 hover:text-white transition-colors">
@@ -175,10 +175,8 @@ const ProjectModal = ({ project, onClose }: { project: Project, onClose: () => v
 
       <div className="relative w-full max-w-5xl h-[85vh] bg-[#0d1117] border border-white/10 rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in duration-300">
         
-        {/* --- VIEW 1: Overview --- */}
         {view === 'overview' && !activeProblem && (
           <div className="flex flex-col h-full overflow-y-auto custom-scrollbar">
-            {/* Header Image Area */}
             <div className="relative h-64 sm:h-80 w-full bg-gradient-to-br from-[#0d1117] to-indigo-950/30 flex items-center justify-center shrink-0 border-b border-white/5">
               <button 
                 onClick={onClose}
@@ -200,6 +198,16 @@ const ProjectModal = ({ project, onClose }: { project: Project, onClose: () => v
               )}
               
               <div className="absolute bottom-0 left-0 w-full p-8 bg-gradient-to-t from-[#0d1117] via-[#0d1117]/80 to-transparent">
+                <div className="flex items-center gap-3 mb-2">
+                   {/* 모달 내부 타이틀 위에도 뱃지 표시 */}
+                   <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
+                      project.projectType === 'Team' 
+                      ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' 
+                      : 'bg-green-500/20 text-green-400 border-green-500/30'
+                   }`}>
+                      {project.projectType} Project
+                   </span>
+                </div>
                 <h3 className="text-4xl md:text-5xl font-bold text-white mb-3 font-heading">{project.title}</h3>
                 <div className="flex flex-wrap gap-2">
                     {project.tags.map(tag => (
@@ -211,7 +219,6 @@ const ProjectModal = ({ project, onClose }: { project: Project, onClose: () => v
               </div>
             </div>
 
-            {/* Content Body */}
             <div className="p-8 grid grid-cols-1 lg:grid-cols-3 gap-8 content-start">
               <div className="lg:col-span-2 space-y-8">
                 <div>
@@ -221,10 +228,8 @@ const ProjectModal = ({ project, onClose }: { project: Project, onClose: () => v
                   </p>
                 </div>
 
-                {/* ✅ [수정] Architecture & Media Gallery Section */}
                 <div>
                   <h4 className="text-xl font-bold text-white mb-4">Architecture & Media</h4>
-                  
                   {project.gallery && project.gallery.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {project.gallery.map((media, idx) => (
@@ -283,7 +288,6 @@ const ProjectModal = ({ project, onClose }: { project: Project, onClose: () => v
                 </div>
               </div>
 
-              {/* Right Sidebar */}
               <div className="space-y-6">
                 <div className="p-6 rounded-2xl bg-[#161b22] border border-white/5">
                   <h4 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Links</h4>
@@ -312,12 +316,11 @@ const ProjectModal = ({ project, onClose }: { project: Project, onClose: () => v
                   </div>
                 </div>
 
-                {/* Troubleshooting List */}
                 {project.problemSolving && project.problemSolving.length > 0 && (
                   <div className="rounded-2xl bg-[#161b22] border border-white/5 overflow-hidden">
                     <div className="p-4 bg-[#1f2430] border-b border-white/5 flex items-center gap-2">
-                       <VscShield className="text-indigo-400" size={20} />
-                       <span className="text-sm font-bold text-gray-300">Troubleshooting Cases ({project.problemSolving.length})</span>
+                        <VscShield className="text-indigo-400" size={20} />
+                        <span className="text-sm font-bold text-gray-300">Troubleshooting Cases ({project.problemSolving.length})</span>
                     </div>
                     
                     <div className="p-2 space-y-1">
@@ -346,10 +349,8 @@ const ProjectModal = ({ project, onClose }: { project: Project, onClose: () => v
           </div>
         )}
 
-        {/* --- VIEW 2: Detail (상세 문서화 화면) --- */}
         {activeProblem !== null && (
           <div className="flex flex-col h-full bg-[#0d1117] animate-in slide-in-from-right duration-300">
-            {/* Header / Nav */}
             <div className="flex items-center justify-between p-4 px-6 border-b border-white/10 bg-[#0d1117]/80 backdrop-blur-md sticky top-0 z-20">
               <button 
                 onClick={() => setActiveProblem(null)}
@@ -359,16 +360,14 @@ const ProjectModal = ({ project, onClose }: { project: Project, onClose: () => v
                 <span className="font-medium text-sm">Back to List</span>
               </button>
               <div className="flex gap-2">
-                 <button onClick={onClose} className="p-2 rounded-lg text-gray-400 hover:bg-white/5 hover:text-white transition-colors">
+                  <button onClick={onClose} className="p-2 rounded-lg text-gray-400 hover:bg-white/5 hover:text-white transition-colors">
                     <X size={20} />
-                 </button>
+                  </button>
               </div>
             </div>
 
-            {/* Content Body - Documentation Style */}
             <div className="flex-1 overflow-y-auto custom-scrollbar">
                <div className="max-w-4xl mx-auto p-8 sm:p-12">
-                  
                   <div className="mb-12 border-b border-white/10 pb-8">
                     <div className="flex items-center gap-3 mb-4 text-indigo-400">
                        <FileText size={24} />
@@ -392,9 +391,8 @@ const ProjectModal = ({ project, onClose }: { project: Project, onClose: () => v
                   <div className="space-y-12">
                     {solvingSteps(activeProblem).map((step, idx) => (
                       <div key={idx} className="relative pl-8 sm:pl-0">
-                         <div className="hidden sm:block absolute left-[27px] top-10 bottom-[-48px] w-px bg-white/5 last:hidden"></div>
-
-                         <div className="flex flex-col sm:flex-row gap-6">
+                          <div className="hidden sm:block absolute left-[27px] top-10 bottom-[-48px] w-px bg-white/5 last:hidden"></div>
+                          <div className="flex flex-col sm:flex-row gap-6">
                             <div className="flex-shrink-0">
                                <div className={`w-14 h-14 rounded-2xl bg-[#161b22] border border-white/10 flex items-center justify-center shadow-lg relative z-10 ${step.color}`}>
                                   {step.icon}
@@ -410,13 +408,12 @@ const ProjectModal = ({ project, onClose }: { project: Project, onClose: () => v
                                   </p>
                                </div>
                             </div>
-                         </div>
+                          </div>
                       </div>
                     ))}
                   </div>
-
                   <div className="mt-16 pt-8 border-t border-white/10 text-center text-gray-500 text-sm">
-                     End of Report
+                      End of Report
                   </div>
                </div>
             </div>
@@ -465,6 +462,7 @@ export default function App() {
     { name: 'GitHub Actions', icon: <SiGithubactions />, color: '#2088FF', category: 'DevSecOps' },
     { name: 'Semgrep', icon: <VscShield />, color: '#358A7F', category: 'DevSecOps' },
     { name: 'Trivy', icon: <VscShield />, color: '#00A0E1', category: 'DevSecOps' },
+    { name: 'Spring Cloud', icon: <SiSpring />, color: '#6DB33F', category: 'Cloud & Infra' },
   ];
 
   const filteredSkills = activeSkillTab === 'All' 
@@ -548,21 +546,144 @@ export default function App() {
         '개발자가 인프라 팀을 거치지 않고도 주도적으로 서비스를 배포할 수 있는 환경을 구축하며, 플랫폼 엔지니어링이 나아가야 할 방향성을 확립했습니다.',
       ]
     },
-    {
-      date: '2025.01 - 현재',
-      title: 'Open Source Contributor & Study',
-      company: 'OWASP',
-      description: '혼자만의 공부에 그치지 않고, 글로벌 보안 커뮤니티와 호흡하며 지식을 나누고 확장하는 즐거움을 배우고 있습니다.',
-      tasks: [
-        '파편화된 DevSecOps 지식들을 정리하고 문서화하면서, "내가 아는 것을 남이 이해할 수 있게 설명하는 능력"의 중요성을 배웠습니다.',
-        '이론으로만 존재하던 글로벌 보안 표준들이 실제 현업 환경에서는 어떻게 변형되고 적용되어야 하는지, 그 간극(Gap)을 메우는 방법을 연구하고 있습니다.',
-      ]
-    },
   ];
 
+  // ✅ [Update] 프로젝트 리스트 업데이트 (Team/Side 구분 및 Datalocker 추가)
   const projects: Project[] = [
     { 
+      title: 'HoneyBeePF',
+      projectType: 'Team',
+      description: 'Rust와 eBPF 기반의 Kubernetes 환경을 위한 경량 관측성 플랫폼입니다.',
+      detailedDescription: `기존 모니터링 도구(Sidecar 패턴 등)의 높은 리소스 오버헤드 문제를 해결하기 위해 eBPF(Extended Berkeley Packet Filter) 기술을 도입했습니다.\n\n커널 레벨에서 시스템 콜과 네트워크 패킷을 직접 추적하여 애플리케이션 수정 없이 깊이 있는 가시성을 제공하며, 수집된 데이터는 OpenTelemetry 표준을 준수하여 Grafana로 시각화됩니다.`,
+      tags: ['Rust', 'eBPF', 'Kubernetes', 'Prometheus'],
+      icon: <FaBeer size={40} />,
+      links: {
+        docs: "https://honeybeepf.io",
+      },
+      problemSolving: [
+        {
+          id: "hb-1",
+          summary: "사이드카 패턴 오버헤드 제거 (Zero-Cost Abstraction)",
+          problem: "기존 Sidecar 방식의 에이전트는 각 파드마다 컨테이너를 추가해야 하므로 클러스터 전체 리소스 사용량이 급증하는 문제가 있음.",
+          cause: "User Space와 Kernel Space 간의 잦은 Context Switching 및 중복된 네트워크 스택 처리",
+          metric: "노드 당 CPU 사용률 15% 감소 목표",
+          solution: "Rust 기반 eBPF 프로그램을 통해 커널 레벨에서 직접 메트릭 수집 (DaemonSet 방식)",
+          process: "1. aya 프레임워크를 사용하여 eBPF 프로브 개발\n2. kprobes/tracepoints를 이용해 필요한 syscall 만 선택적으로 후킹",
+          evaluation: "기존 대비 CPU 오버헤드 90% 이상 절감 및 네트워크 지연 시간(Latency) 최소화 달성",
+          remarks: "Rust의 메모리 안전성과 eBPF의 고성능을 결합하여 안정적인 모니터링 환경 구축"
+        }
+      ]
+    },
+    { 
+      title: '12-STREETS',
+      projectType: 'Team',
+      description: '대규모 트래픽 처리를 위한 Docker & Kubernetes 기반 이커머스 인프라 구축 프로젝트입니다.',
+      detailedDescription: `실제 상용 환경을 모사하여 On-Premise 환경에서 직접 Kubernetes 클러스터를 구축했습니다.\n\nMySQL 이중화(HA) 구성으로 데이터 안정성을 확보하고, ArgoCD를 이용한 GitOps 배포 파이프라인을 통해 배포 자동화 및 버전 관리를 구현했습니다. 또한 Nginx Ingress Controller와 MetalLB를 통해 외부 트래픽을 효율적으로 라우팅했습니다.`,
+      tags: ['Kubernetes', 'Docker', 'ArgoCD', 'MySQL'],
+      icon: <SiKubernetes size={40} />,
+      links: {
+        github: "https://github.com/vanillaturtlechips/12-streets",
+      },
+      problemSolving: [
+        {
+          id: "st-1",
+          summary: "K8s Master Node HA 구성 및 Leader Election 검증",
+          problem: "단일 마스터 노드 장애 시 클러스터 전체 제어 불능 상태가 되는 SPOF(Single Point of Failure) 위험",
+          cause: "초기 클러스터 설계 시 Control Plane 이중화 미고려",
+          metric: "마스터 노드 1대 다운 시 API Server 가용성 유지 여부",
+          solution: "Keepalived와 HAProxy를 이용한 마스터 노드 3중화 및 VIP 구성",
+          process: "1. 3대의 마스터 노드에 etcd 클러스터링 구성\n2. Keepalived로 VIP 설정 및 헬스 체크 스크립트 적용\n3. 강제로 리더 노드를 종료시키는 카오스 테스트 수행",
+          evaluation: "리더 노드 장애 발생 시 3초 이내에 예비 노드가 리더로 승격되며 서비스 중단 없이 API 요청 처리 성공",
+          remarks: "분산 시스템에서의 합의 알고리즘(Raft)과 리더 선출 과정에 대한 깊은 이해 획득"
+        },
+        {
+          id: "st-2",
+          summary: "DB 연결 실패 및 환경 변수 주입 문제 해결",
+          problem: "배포된 애플리케이션이 K8s 환경 변수가 아닌 로컬 설정(localhost)을 참조하여 DB 연결 실패",
+          cause: "Spring Boot 프로파일 설정 우선순위 문제 및 `isLocal` 플래그 로직 오류",
+          metric: "Pod 재시작 횟수(CrashLoopBackOff) 및 에러 로그 발생 빈도",
+          solution: "환경 변수(`env`) 주입 여부에 따른 동적 프로파일 선택 로직 개선",
+          process: "1. K8s ConfigMap/Secret으로 DB 접속 정보 주입\n2. 애플리케이션 구동 시 `System.getenv` 확인 로직 수정\n3. Liveness Probe 설정으로 DB 연결 실패 시 자동 재시작 구성",
+          evaluation: "배포 성공률 100% 달성 및 환경별(Dev/Prod) 설정 분리 완벽 구현",
+          remarks: "코드 레벨과 인프라 설정 간의 의존성을 명확히 분리하는 12-Factor App 원칙 적용"
+        }
+      ]
+    },
+    { 
+      title: 'Intellisia Platform',
+      projectType: 'Team',
+      description: '보안 취약점 점검을 자동화하고 개발 프로세스에 통합한 DevSecOps 플랫폼입니다.',
+      detailedDescription: `개발자가 코드를 푸시하는 순간부터 배포까지 보안 검사를 자동 수행하는 올인원 플랫폼입니다.\n\nNext.js로 개발된 사용자 대시보드에서 파이프라인 상태를 시각화하며, GitHub Actions와 연동하여 Trivy(이미지 스캔), Semgrep(코드 스캔) 결과를 리포팅합니다.`,
+      tags: ['Next.js', 'DevSecOps', 'GitHub Actions', 'AWS'],
+      icon: <VscShield size={40} />,
+      links: {
+        github: "https://github.com/GRPC-OK/Intellisia",
+      },
+      problemSolving: [
+        {
+          id: "int-1",
+          summary: "CI/CD 파이프라인 속도 최적화 (병렬 처리)",
+          problem: "보안 스캔 단계가 추가되면서 전체 배포 시간이 2배 이상 증가하여 개발 피드백 루프가 느려짐.",
+          cause: "모든 Job이 순차적(Sequential)으로 실행되도록 구성된 워크플로우",
+          metric: "전체 파이프라인 실행 시간 15분 -> 5분 단축 목표",
+          solution: "GitHub Actions의 `needs` 키워드를 활용한 의존성 관리 및 병렬(Parallel) 실행 구조로 변경",
+          process: "1. 빌드, 테스트, 보안 스캔(SAST/Image) 단계를 독립적인 Job으로 분리\n2. 캐싱(Actions Cache) 적용으로 중복 다운로드 제거",
+          evaluation: "파이프라인 실행 시간 6분으로 약 60% 단축, 개발 생산성 향상",
+          remarks: "속도와 보안 사이의 트레이드오프를 기술적으로 해결한 사례"
+        }
+      ]
+    },
+    { 
+      title: 'SoftBank Hackathon',
+      projectType: 'Team',
+      description: 'Spring Cloud 기반의 마이크로서비스 아키텍처로 구현한 클라우드 네이티브 서비스입니다.',
+      detailedDescription: `SoftBank 주관 해커톤에서 개발한 프로젝트로, 확장성과 유연성을 극대화하기 위해 MSA 패턴을 적용했습니다.\n\nEureka Server를 통한 서비스 디스커버리, Spring Cloud Gateway를 이용한 단일 진입점 관리, 그리고 Prometheus & Grafana를 활용한 통합 모니터링 환경을 구축했습니다.`,
+      tags: ['Spring Cloud', 'Java', 'Docker', 'Grafana'],
+      icon: <SiSpring size={40} />,
+      links: {
+      },
+      problemSolving: [
+         {
+            id: "sb-1",
+            summary: "마이크로서비스 간 통신 장애 및 디스커버리 지연 해결",
+            problem: "서비스 스케일 아웃 시 Gateway가 새로운 인스턴스를 즉시 인식하지 못해 503 에러 발생",
+            cause: "Eureka Client의 Heartbeat 주기와 Gateway의 캐시 갱신 주기 불일치",
+            metric: "서비스 등록 후 트래픽 수신 가능까지의 지연 시간(Lag)",
+            solution: "Eureka Instance 설정 튜닝 (`lease-renewal-interval-in-seconds` 등)",
+            process: "1. 갱신 주기를 기본 30초에서 5초로 단축하여 감지 속도 향상\n2. Gateway의 로드밸런싱 정책을 RoundRobin으로 명시적 설정",
+            evaluation: "인스턴스 추가/삭제 시 10초 이내에 라우팅 테이블 갱신 확인, 무중단 배포 가능해짐",
+            remarks: "분산 시스템에서의 '일관성(Consistency)'과 '가용성(Availability)' 간의 조율 경험"
+         }
+      ]
+    },
+    // ✅ [Added] DataLocker (Side Project) 추가
+    {
+      title: 'Datalocker',
+      projectType: 'Side',
+      description: '개인 데이터 보안 및 로컬 암호화 저장소 프로젝트입니다.',
+      detailedDescription: `Rust의 강력한 메모리 안전성과 Tauri의 경량화된 프레임워크를 활용하여 개발된 크로스 플랫폼 데스크탑 애플리케이션입니다.\n\nSQLite Cipher를 이용한 데이터베이스 암호화를 적용하여 로컬에 저장되는 모든 민감 데이터를 보호하며, OS Native Keychain과 연동하여 마스터 키 관리에 대한 보안성을 강화했습니다.`,
+      tags: ['Rust', 'Tauri', 'SQLite', 'Security'],
+      icon: <Lock size={40} />,
+      links: {
+        github: "https://github.com/vanillaturtlechips/datalocker", // 예시 링크
+      },
+      problemSolving: [
+        {
+          id: "dl-1",
+          summary: "로컬 데이터베이스 암호화 및 성능 최적화",
+          problem: "일반 SQLite 사용 시 데이터 파일이 평문으로 저장되어 탈취 시 정보 유출 위험 발생",
+          cause: "SQLite 기본 드라이버는 암호화 기능을 제공하지 않음",
+          metric: "암호화 적용 후 쿼리 Latency 증가율 10% 미만 유지",
+          solution: "SQLCipher 통합 및 Rust 바인딩(Rusqlite) 적용",
+          process: "1. Tauri 백엔드에서 DB 커넥션 생성 시 PRAGMA key 설정을 통해 암호화 키 주입\n2. 메모리 상에서만 복호화가 이루어지도록 로직 구성",
+          evaluation: "강력한 AES-256 암호화를 적용하면서도 체감 성능 저하 없는 안전한 저장소 구축",
+          remarks: "Client-Side Encryption의 중요성과 키 관리의 어려움(Key Management)을 경험"
+        }
+      ]
+    },
+    { 
       title: 'Gopra Portfolio', 
+      projectType: 'Side',
       description: 'React, Go, Docker로 구축한 현대적인 인터랙티브 포트폴리오 사이트입니다.',
       detailedDescription: `React와 Tailwind CSS를 활용하여 Glassmorphism UI를 구현하고, 백엔드는 Go언어로 API를 개발했습니다. \n\nDocker Multi-stage build를 통해 이미지 사이즈를 최적화했으며, GitHub Actions를 통해 CI/CD 파이프라인을 구축하여 자동 배포 환경을 마련했습니다.`,
       tags: ['Go', 'React', 'Docker', 'Terraform'],
@@ -571,20 +692,6 @@ export default function App() {
         github: "https://github.com/vanillaturtlechips/gopra",
         demo: "https://myong12.site"
       },
-      // ✅ [추가] 갤러리 데이터 예시
-      gallery: [
-        {
-          type: 'image',
-          url: 'https://images.unsplash.com/photo-1558494949-efc53075a3bd?q=80&w=2000', // 실제 아키텍처 이미지 URL로 교체
-          caption: 'System Architecture v1.0'
-        },
-        {
-          type: 'video',
-          url: 'https://youtu.be/bFGxiAOT-t8', // 실제 유튜브 링크
-          thumbnail: 'https://img.youtube.com/vi/bFGxiAOT-t8/maxresdefault.jpg', // 썸네일
-          caption: 'Demo: Auto Deployment'
-        }
-      ],
       problemSolving: [
         {
           id: "case-1",
@@ -611,24 +718,58 @@ export default function App() {
       ]
     },
     { 
-      title: 'Serverless Todo', 
-      description: 'AWS Lambda와 DynamoDB를 활용한 고성능 서버리스 애플리케이션입니다.',
-      detailedDescription: `서버 관리의 부담을 줄이고 비용을 최적화하기 위해 서버리스 아키텍처를 채택했습니다. \n\nTerraform을 사용하여 모든 인프라를 코드로 정의(IaC)했으며, API Gateway와 Lambda의 연동을 통해 확장성 있는 백엔드를 구축했습니다.`,
-      tags: ['AWS'],
-      icon: <Cpu size={40} />,
-      links: {
-        github: "https://github.com/vanillaturtlechips",
-      }
+      title: 'Security Infra Setup',
+      projectType: 'Side',
+      description: '리눅스 기반의 방화벽 및 침입 탐지 시스템(IDS)을 구축하여 내부망을 보호하는 보안 인프라 프로젝트입니다.',
+      detailedDescription: `VMware 상에서 가상 네트워크를 구성하고, iptables를 이용한 패킷 필터링 정책을 수립했습니다.\n\nSnort IDS를 도입하여 악성 트래픽을 탐지하고, Wireshark를 통해 네트워크 패킷을 심층 분석하여 보안 위협에 대응하는 체계를 마련했습니다.`,
+      tags: ['Linux', 'Network', 'Security', 'Snort'],
+      icon: <Network size={40} />,
+      links: {},
+      problemSolving: [
+        {
+          id: "sec-1",
+          summary: "가상 네트워크 IP 충돌 및 통신 불가 문제 해결",
+          problem: "VMware Bridged 모드 사용 시 호스트 네트워크와 IP 대역 충돌로 인한 외부 통신 단절",
+          cause: "DHCP 할당 범위 내에 고정 IP를 설정하여 중복 발생",
+          metric: "네트워크 패킷 손실률(Packet Loss) 0% 달성",
+          solution: "네트워크 대역 설계(Subnetting) 및 정적 IP 할당 정책 수립",
+          process: "1. 내부망(Private)과 외부망(Public) 인터페이스 분리\n2. 체계적인 IP 관리 대장 작성 및 문서화",
+          evaluation: "안정적인 네트워크 통신 환경 확보 및 인프라 설계 역량 강화",
+          remarks: "기초 네트워크 이론(OSI 7 Layer)을 실제 환경에 적용해본 경험"
+        }
+      ]
     },
     { 
-      title: 'K8s Cluster Auto', 
-      description: 'Terraform과 Ansible을 이용한 프로덕션 레벨의 쿠버네티스 클러스터 프로비저닝 프로젝트입니다.',
-      detailedDescription: `AWS EKS가 아닌 EC2 인스턴스 위에 직접 쿠버네티스 클러스터를 구축하며 내부 동작 원리를 파악했습니다. \n\nTerraform으로 VPC 및 네트워크 인프라를 구성하고, Ansible Playbook을 통해 노드 설정 및 클러스터 조인을 자동화했습니다.`,
-      tags: ['Kubernetes', 'Terraform'],
-      icon: <Terminal size={40} />,
-      links: {
-        github: "https://github.com/vanillaturtlechips",
-      }
+      title: 'Vulnerability Script',
+      projectType: 'Side',
+      description: '주요정보통신기반시설 기술적 취약점 가이드를 준수하는 자동화 점검 스크립트 개발 프로젝트입니다.',
+      detailedDescription: `수동으로 진행되던 서버 취약점 점검을 Shell Script로 자동화하여 점검 시간을 획기적으로 단축했습니다.\n\nOS 설정 파일, 권한, 불필요한 서비스 등을 자동으로 스캔하고, HTML/Text 형태의 보고서를 생성하여 관리자가 즉시 조치할 수 있도록 지원합니다.`,
+      tags: ['Shell Script', 'Linux', 'Automation'],
+      icon: <SiGnubash size={40} />,
+      links: {},
+      problemSolving: [
+        {
+          id: "vul-1",
+          summary: "대용량 파일 검색 시 시스템 부하 최적화",
+          problem: "루트 디렉토리(`/`)부터 전체 검색(`find`) 실행 시 CPU 부하 급증 및 점검 시간 과다 소요",
+          cause: "불필요한 시스템 디렉토리(/proc, /sys 등)까지 검색 범위에 포함됨",
+          metric: "스크립트 실행 시간 및 CPU Load Average",
+          solution: "검색 제외 경로(`-prune`) 설정 및 타겟 디렉토리 한정",
+          process: "1. 점검 항목별로 필수적인 경로만 지정하도록 로직 개선\n2. I/O 부하를 줄이기 위해 `nice` 명령어로 프로세스 우선순위 조정",
+          evaluation: "점검 속도 5배 향상 및 운영 중인 서비스에 영향 없이 점검 가능해짐",
+          remarks: "엔지니어링에서 '효율성'과 '정확성'을 동시에 고려해야 함을 배움"
+        }
+      ]
+    },
+    { 
+      title: 'Malware Analysis',
+      projectType: 'Side',
+      description: '실제 악성코드(랜섬웨어, 봇넷 등)를 격리된 샌드박스 환경에서 분석하고 보고서를 작성했습니다.',
+      detailedDescription: `가상 머신을 이용해 안전한 분석 환경을 구축하고, 정적 분석(문자열, PE 헤더)과 동적 분석(프로세스, 레지스트리, 네트워크 행위)을 수행했습니다.\n\n악성코드의 동작 원리를 파악하고 침해 사고 발생 시 대응 방안을 도출하는 역량을 길렀습니다.`,
+      tags: ['Security', 'Forensic', 'Wireshark', 'Reverse Engineering'],
+      icon: <Search size={40} />,
+      links: {},
+      problemSolving: [] 
     },
   ];
 
@@ -651,7 +792,7 @@ export default function App() {
     : posts.filter(post => normalizeCategory(post.category) === normalizeCategory(selectedStudyCategory));
 
   const [selectedProjectCategory, setSelectedProjectCategory] = useState('All');
-  const projectCategories = ['All', 'AWS', 'Terraform', 'Docker', 'Kubernetes', 'Go', 'React'];
+  const projectCategories = ['All', 'AWS', 'Terraform', 'Docker', 'Kubernetes', 'Go', 'React', 'Security', 'DevSecOps'];
   
   const filteredProjects = selectedProjectCategory === 'All'
     ? projects
@@ -682,7 +823,6 @@ export default function App() {
     <>
       <MouseSpotlight />
       
-      {/* Project Detail Modal */}
       {selectedProject && (
         <ProjectModal project={selectedProject} onClose={() => setSelectedProject(null)} />
       )}
@@ -713,7 +853,6 @@ export default function App() {
         
         <main className="max-w-7xl mx-auto px-6 md:px-12 py-8">
 
-          {/* About Section */}
           <section id="about" className="min-h-screen flex flex-col items-start justify-center relative overflow-hidden">
             <div className="absolute top-1/2 right-0 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none" />
             
@@ -758,7 +897,6 @@ export default function App() {
             </div>
           </section>
 
-          {/* Core Competencies Section */}
           <section id="competencies" className="min-h-screen pt-32">
             <FadeInSection>
               <div className="mb-16">
@@ -789,7 +927,6 @@ export default function App() {
             </FadeInSection>
           </section>
 
-          {/* Skills Section */}
           <section id="skills" className="min-h-screen pt-32 relative flex flex-col">
             <FadeInSection>
               <div className="mb-16">
@@ -834,7 +971,6 @@ export default function App() {
             </FadeInSection>
           </section>
 
-          {/* Activities Section */}
           <section id="experience" className="min-h-[80vh] pt-32">
             <FadeInSection>
               <h2 className="text-5xl md:text-6xl font-bold text-white mb-16 font-heading">
@@ -869,7 +1005,6 @@ export default function App() {
             </FadeInSection>
           </section>
 
-          {/* Projects Section */}
           <section id="projects" className="min-h-screen pt-32">
             <FadeInSection>
               <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-8">
@@ -899,8 +1034,16 @@ export default function App() {
                       onClick={() => setSelectedProject(project)}
                       className="group relative flex flex-col h-full bg-gray-900/40 border border-white/5 rounded-3xl overflow-hidden backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-indigo-500/30 hover:shadow-[0_10px_40px_-10px_rgba(79,70,229,0.2)] cursor-pointer"
                     >
-                      {/* Top Content */}
-                      <div className="p-8 flex-grow">
+                      {/* ✅ [Updated] 프로젝트 카드 디자인: 배지 추가 */}
+                      <div className="p-8 flex-grow relative">
+                         <div className={`absolute top-8 right-8 px-3 py-1 rounded-full text-xs font-bold border ${
+                            project.projectType === 'Team' 
+                            ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' 
+                            : 'bg-green-500/10 text-green-400 border-green-500/20'
+                         }`}>
+                           {project.projectType}
+                         </div>
+
                         <div className="mb-6 p-4 bg-white/5 rounded-2xl w-fit text-indigo-400 group-hover:text-white group-hover:bg-indigo-600 transition-colors duration-300">
                           {project.icon || <Code2 size={32} />}
                         </div>
@@ -915,16 +1058,15 @@ export default function App() {
                         </div>
                       </div>
 
-                      {/* Bottom Highlight (Troubleshooting Preview) - Image Style Match */}
                       {project.problemSolving && project.problemSolving.length > 0 && (
                         <div className="bg-[#161b22] border-t border-white/5 p-4 group hover:bg-[#1f2430] transition-colors">
                            <div className="flex items-center gap-2 mb-2">
                               <VscShield className="text-indigo-400" size={16} />
-                              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Troubleshooting Case</span>
+                              <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Troubleshooting Case</span>
                            </div>
                            <p className="text-white font-bold text-sm flex items-center justify-between">
-                              {project.problemSolving[0].summary}
-                              <ArrowRight size={16} className="text-indigo-400 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"/>
+                             {project.problemSolving[0].summary}
+                             <ArrowRight size={16} className="text-indigo-400 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"/>
                            </p>
                         </div>
                       )}
@@ -935,7 +1077,6 @@ export default function App() {
             </FadeInSection>
           </section>
 
-          {/* Study Section */}
           <section id="study" className="min-h-screen pt-32">
              <FadeInSection>
                 <h2 className="text-5xl md:text-6xl font-bold text-white text-center mb-16 font-heading">Tech Blog</h2>
@@ -972,7 +1113,6 @@ export default function App() {
              </FadeInSection>
           </section>
 
-          {/* Contact Section */}
           <section id="contact" className="min-h-[70vh] flex flex-col items-center justify-center text-center">
             <FadeInSection>
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-sm font-medium mb-8">
