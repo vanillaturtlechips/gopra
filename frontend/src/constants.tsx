@@ -121,6 +121,23 @@ export const experiences = [
 
 export const projects: Project[] = [
   { 
+    title: 'Intellisia Platform',
+    projectType: 'Team',
+    description: '보안 취약점 점검을 자동화하고 개발 프로세스에 통합한 DevSecOps 플랫폼입니다.',
+    detailedDescription: `개발자가 코드를 푸시하는 순간부터 배포까지 보안 검사를 자동 수행하는 올인원 플랫폼입니다.\n\nNext.js로 개발된 사용자 대시보드에서 파이프라인 상태를 시각화하며, GitHub Actions와 연동하여 Trivy(이미지 스캔), Semgrep(코드 스캔) 결과를 리포팅합니다.`,
+    tags: ['Next.js', 'DevSecOps', 'GitHub Actions', 'AWS'],
+    icon: <img src="/images/trivy.png" alt="Trivy" className="w-10 h-10 object-contain" />,
+    links: { github: "https://github.com/GRPC-OK/Intellisia" },
+    gallery: [
+      { type: 'video', url: 'https://www.youtube.com/embed/J5b4r_co9u4', caption: '인텔리시아 플랫폼 주요 기능 시연' },
+      { type: 'image', url: '/images/Intellsia1.png', caption: '실시간 보안 대시보드 메인 화면' },
+      { type: 'image', url: '/images/Intellsia2.png', caption: 'Elasticsearch 로그 데이터 검색 및 분석' },
+      { type: 'image', url: '/images/Intellsia3.png', caption: '시스템 아키텍처 및 데이터 파이프라인 구성도' },
+      { type: 'image', url: '/images/Intellsia4.png', caption: '사용자 정의 위협 탐지 규칙 설정' }
+    ],
+    problemSolving: [{ id: "int-1", summary: "CI/CD 파이프라인 속도 최적화 (병렬 처리)", problem: "보안 스캔 단계가 추가되면서 전체 배포 시간이 2배 이상 증가하여 개발 피드백 루프가 느려짐.", cause: "모든 Job이 순차적(Sequential)으로 실행되도록 구성된 워크플로우", metric: "전체 파이프라인 실행 시간 15분 -> 5분 단축 목표", solution: "GitHub Actions의 needs 키워드를 활용한 의존성 관리 및 병렬(Parallel) 실행 구조로 변경", process: "1. 빌드, 테스트, 보안 스캔(SAST/Image) 단계를 독립적인 Job으로 분리\n2. 캐싱(Actions Cache) 적용으로 중복 다운로드 제거", evaluation: "파이프라인 실행 시간 6분으로 약 60% 단축, 개발 생산성 향상", remarks: "속도와 보안 사이의 트레이드오프를 기술적으로 해결한 사례" }]
+  },
+  { 
     title: 'HoneyBeePF',
     projectType: 'Team',
     description: 'Rust와 eBPF 기반의 Kubernetes 환경을 위한 경량 관측성 플랫폼입니다.',
@@ -139,19 +156,9 @@ export const projects: Project[] = [
     icon: <SiKubernetes size={40} />,
     links: { github: "https://github.com/vanillaturtlechips/12-streets" },
     problemSolving: [
-      { id: "st-1", summary: "K8s Master Node HA 구성 및 Leader Election 검증", problem: "단일 마스터 노드 장애 시 클러스터 전체 제어 불능 상태가 되는 SPOF(Single Point of Failure) 위험", cause: "초기 클러스터 설계 시 Control Plane 이중화 미고려", metric: "마스터 노드 1대 다운 시 API Server 가용성 유지 여부", solution: "Keepalived와 HAProxy를 이용한 마스터 노드 3중화 및 VIP 구성", process: "1. 3대의 마스터 노드에 etcd 클러스터링 구성\n2. Keepalived로 VIP 설정 및 헬스 체크 스크립트 적용\n3. 강제로 리더 노드를 종료시키는 카오스 테스트 수행", evaluation: "리더 노드 장애 발생 시 3초 이내에 예비 노드가 리더로 승격되며 서비스 중단 없이 API 요청 처리 성공", remarks: "분산 시스템에서의 합의 알고리즘(Raft)과 리더 선출 과정에 대한 깊은 이해 획득" },
+      { id: "st-1", summary: "K8s Master Node HA 구성 및 Leader Election 검증", problem: "단일 마스터 노드 장애 시 클러스터 전체 제어 불능 상태가 되는 SPOF(Single Point of Failure) 위험", cause: "초기 클러스터 설계 시 Control Plane 이중화 미고려", metric: "마스터 노드 1대 다운 시 API Server 가용성 유지 여부", solution: "Keepalived와 HAProxy를 이용한 마스터 노드 3중화 및 VIP 구성", process: "1. 3대의 마스터 노드에 etcd 클러스터링 구성\n2. Keepalived로 VIP 설정 및 헬스 체크 스크립트 적용\n3. 강제로 리더 노드를 종료시키는 카오스 테스트 수행", evaluation: "리더 노장 발생 시 3초 이내에 예비 노드가 리더로 승격되며 서비스 중단 없이 API 요청 처리 성공", remarks: "분산 시스템에서의 합의 알고리즘(Raft)과 리더 선출 과정에 대한 깊은 이해 획득" },
       { id: "st-2", summary: "DB 연결 실패 및 환경 변수 주입 문제 해결", problem: "배포된 애플리케이션이 K8s 환경 변수가 아닌 로컬 설정(localhost)을 참조하여 DB 연결 실패", cause: "Spring Boot 프로파일 설정 우선순위 문제 및 isLocal 플래그 로직 오류", metric: "Pod 재시작 횟수(CrashLoopBackOff) 및 에러 로그 발생 빈도", solution: "환경 변수(env) 주입 여부에 따른 동적 프로파일 선택 로직 개선", process: "1. K8s ConfigMap/Secret으로 DB 접속 정보 주입\n2. 애플리케이션 구동 시 System.getenv 확인 로직 수정\n3. Liveness Probe 설정으로 DB 연결 실패 시 자동 재시작 구성", evaluation: "배포 성공률 100% 달성 및 환경별(Dev/Prod) 설정 분리 완벽 구현", remarks: "코드 레벨과 인프라 설정 간의 의존성을 명확히 분리하는 12-Factor App 원칙 적용" }
     ]
-  },
-  { 
-    title: 'Intellisia Platform',
-    projectType: 'Team',
-    description: '보안 취약점 점검을 자동화하고 개발 프로세스에 통합한 DevSecOps 플랫폼입니다.',
-    detailedDescription: `개발자가 코드를 푸시하는 순간부터 배포까지 보안 검사를 자동 수행하는 올인원 플랫폼입니다.\n\nNext.js로 개발된 사용자 대시보드에서 파이프라인 상태를 시각화하며, GitHub Actions와 연동하여 Trivy(이미지 스캔), Semgrep(코드 스캔) 결과를 리포팅합니다.`,
-    tags: ['Next.js', 'DevSecOps', 'GitHub Actions', 'AWS'],
-    icon: <img src="/images/trivy.png" alt="Trivy" className="w-10 h-10 object-contain" />,
-    links: { github: "https://github.com/GRPC-OK/Intellisia" },
-    problemSolving: [{ id: "int-1", summary: "CI/CD 파이프라인 속도 최적화 (병렬 처리)", problem: "보안 스캔 단계가 추가되면서 전체 배포 시간이 2배 이상 증가하여 개발 피드백 루프가 느려짐.", cause: "모든 Job이 순차적(Sequential)으로 실행되도록 구성된 워크플로우", metric: "전체 파이프라인 실행 시간 15분 -> 5분 단축 목표", solution: "GitHub Actions의 needs 키워드를 활용한 의존성 관리 및 병렬(Parallel) 실행 구조로 변경", process: "1. 빌드, 테스트, 보안 스캔(SAST/Image) 단계를 독립적인 Job으로 분리\n2. 캐싱(Actions Cache) 적용으로 중복 다운로드 제거", evaluation: "파이프라인 실행 시간 6분으로 약 60% 단축, 개발 생산성 향상", remarks: "속도와 보안 사이의 트레이드오프를 기술적으로 해결한 사례" }]
   },
   { 
     title: 'SoftBank Hackathon',
