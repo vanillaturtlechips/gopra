@@ -793,12 +793,6 @@ export default function App() {
     },
   ];
 
-  const fetchPosts = () => {
-    setIsLoading(true);
-   // 임시 로딩 해제
-   setIsLoading(false);
-  };
-
   const fetchPosts = async () => {
   setIsLoading(true);
   try {
