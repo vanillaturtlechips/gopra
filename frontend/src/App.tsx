@@ -798,6 +798,23 @@ export default function App() {
    // 임시 로딩 해제
    setIsLoading(false);
   };
+
+  const fetchPosts = async () => {
+  setIsLoading(true);
+  try {
+    // Vite proxy 설정(/api)을 통해 백엔드로 요청을 보냅니다.
+    const response = await fetch('/api/posts');
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    const data = await response.json();
+    setPosts(data); // 가져온 데이터를 상태에 저장
+  } catch (error) {
+    console.error("Failed to fetch posts:", error);
+  } finally {
+    setIsLoading(false);
+  }
+  };
   
   useEffect(() => { fetchPosts(); }, []);
 
